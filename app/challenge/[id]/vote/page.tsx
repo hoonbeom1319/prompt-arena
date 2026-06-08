@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import VoteCard from '@/components/VoteCard'
 import { createClient } from '@/lib/supabase/client'
+import { Card } from '@/ds/card'
+import { Badge } from '@/ds/badge'
 
 interface Submission {
   id: string
@@ -29,7 +31,7 @@ export default function VotePage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [submissions, setSubmissions] = useState<Submission[]>([])
@@ -99,7 +101,7 @@ export default function VotePage() {
     load()
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, router]) // supabase is a stable browser singleton
+  }, [id, router])
 
   const handleVote = async (submissionId: string) => {
     if (myVotes.some(v => v.submissionId === submissionId)) return
@@ -121,9 +123,7 @@ export default function VotePage() {
     } else {
       const newVotes = [...myVotes, { submissionId }]
       setMyVotes(newVotes)
-      if (newVotes.length >= MAX_VOTES) {
-        setRevealed(true)
-      }
+      if (newVotes.length >= MAX_VOTES) setRevealed(true)
     }
 
     setVoting(false)
@@ -131,110 +131,86 @@ export default function VotePage() {
 
   if (pageLoading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)' }}>
+      <div className="min-h-screen bg-bg-base">
         <Header />
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-          <div style={{ width: '32px', height: '32px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="flex justify-center items-center min-h-[300px]" role="status" aria-label="불러오는 중">
+          <div className="w-8 h-8 border-[3px] border-border border-t-accent rounded-full animate-spin" />
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)' }}>
+    <div className="min-h-screen bg-bg-base">
       <Header />
 
-      <main className="container" style={{ paddingTop: '32px', paddingBottom: '64px' }}>
-        <Link href="/" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '20px' }}>
+      <main className="container pt-8 pb-16">
+        <Link
+          href="/"
+          className="text-sm text-text-secondary no-underline inline-flex items-center gap-1 mb-5 hover:text-text-primary transition-colors"
+        >
           ← 홈으로
         </Link>
 
         {/* Challenge info */}
-        <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
-          <div className="badge badge-warning" style={{ marginBottom: '10px', fontSize: '12px' }}>
-            투표 중
-          </div>
-          <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
-            {challenge?.title}
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-            {challenge?.instruction}
-          </p>
-        </div>
+        <Card className="p-5 mb-6">
+          <Badge variant="warning" className="mb-2.5">투표 중</Badge>
+          <h1 className="text-xl font-bold text-text-primary mb-2">{challenge?.title}</h1>
+          <p className="text-sm text-text-secondary leading-relaxed">{challenge?.instruction}</p>
+        </Card>
 
         {/* Vote counter */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '20px',
-          padding: '14px 18px',
-          backgroundColor: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-        }}>
-          <div>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
-              투표 현황
-            </p>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-              {myVotes.length >= MAX_VOTES
-                ? '모든 투표를 완료했어요! 프롬프트가 공개됩니다.'
-                : `최대 ${MAX_VOTES}개까지 투표할 수 있어요`}
-            </p>
+        <Card className="p-4 mb-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-1">투표 현황</p>
+              <p className="text-[13px] text-text-secondary">
+                {myVotes.length >= MAX_VOTES
+                  ? '모든 투표를 완료했어요! 프롬프트가 공개됩니다.'
+                  : `최대 ${MAX_VOTES}개까지 투표할 수 있어요`}
+              </p>
+            </div>
+            <div className="flex gap-1.5" role="group" aria-label="투표 현황">
+              {Array.from({ length: MAX_VOTES }).map((_, i) => (
+                <div
+                  key={i}
+                  aria-label={i < myVotes.length ? '투표 완료' : '투표 대기'}
+                  className={[
+                    'w-7 h-7 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold',
+                    i < myVotes.length
+                      ? 'bg-accent border-accent'
+                      : 'bg-border border-border-strong',
+                  ].join(' ')}
+                >
+                  {i < myVotes.length ? '✓' : ''}
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {Array.from({ length: MAX_VOTES }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: i < myVotes.length ? 'var(--accent)' : 'var(--border)',
-                  border: `2px solid ${i < myVotes.length ? 'var(--accent)' : 'var(--border-strong)'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '12px',
-                }}
-              >
-                {i < myVotes.length ? '✓' : ''}
-              </div>
-            ))}
-          </div>
-        </div>
+        </Card>
 
         {revealed && (
-          <div style={{
-            padding: '12px 16px',
-            backgroundColor: 'var(--accent-light)',
-            border: '1px solid rgba(217,119,87,0.3)',
-            borderRadius: 'var(--radius-sm)',
-            color: 'var(--accent)',
-            fontSize: '14px',
-            fontWeight: '500',
-            marginBottom: '20px',
-          }}>
+          <div
+            role="status"
+            className="px-4 py-3 bg-accent-light border border-accent/30 rounded-lg text-accent text-sm font-medium mb-5"
+          >
             3표를 모두 사용했어요! 이제 각 AI 응답에 사용된 프롬프트가 공개됩니다.
           </div>
         )}
 
         {error && (
-          <div style={{ marginBottom: '16px', padding: '12px 16px', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: '14px' }}>
+          <div role="alert" className="mb-4 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-error text-sm">
             {error}
           </div>
         )}
 
         {/* Submissions */}
         {submissions.length === 0 ? (
-          <div className="card" style={{ padding: '48px', textAlign: 'center' }}>
-            <p style={{ fontSize: '16px', color: 'var(--text-muted)' }}>아직 제출된 프롬프트가 없어요.</p>
-          </div>
+          <Card className="p-12 text-center">
+            <p className="text-base text-text-muted">아직 제출된 프롬프트가 없어요.</p>
+          </Card>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex flex-col gap-4">
             {submissions.map(sub => (
               <VoteCard
                 key={sub.id}

@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { Card } from '@/ds/card'
+import { Badge } from '@/ds/badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,43 +10,28 @@ export default async function AdminSubmissionsPage() {
   const { data: submissions } = await supabase
     .from('submissions')
     .select(`
-      id,
-      submitted_at,
-      is_seed,
-      final_rank,
-      final_vote_count,
-      user_id,
-      challenge_id,
-      challenges(title),
-      users(nickname)
+      id, submitted_at, is_seed, final_rank, final_vote_count,
+      user_id, challenge_id, challenges(title), users(nickname)
     `)
     .order('submitted_at', { ascending: false })
     .limit(50)
 
   return (
     <div>
-      <h1 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px' }}>
-        제출 현황
-      </h1>
+      <h1 className="text-[22px] font-bold text-text-primary mb-6">제출 현황</h1>
 
-      <div className="card" style={{ overflow: 'hidden' }}>
+      <Card className="overflow-hidden">
         {!submissions || submissions.length === 0 ? (
-          <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            아직 제출이 없어요
-          </div>
+          <div className="p-12 text-center text-text-muted">아직 제출이 없어요</div>
         ) : (
           <div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 100px 80px 80px',
-              gap: '12px',
-              padding: '10px 16px',
-              backgroundColor: 'var(--bg-base)',
-              borderBottom: '1px solid var(--border)',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--text-muted)',
-            }}>
+            {/* Header */}
+            <div
+              className="grid gap-3 px-4 py-2.5 bg-bg-base border-b border-border text-xs font-semibold text-text-muted"
+              style={{ gridTemplateColumns: '1fr 1fr 100px 80px 80px' }}
+              role="row"
+              aria-label="테이블 헤더"
+            >
               <span>챌린지</span>
               <span>유저</span>
               <span>제출일</span>
@@ -58,39 +45,29 @@ export default async function AdminSubmissionsPage() {
               return (
                 <div
                   key={sub.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 100px 80px 80px',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    alignItems: 'center',
-                    borderBottom: idx < submissions.length - 1 ? '1px solid var(--border)' : 'none',
-                  }}
+                  className={['grid gap-3 px-4 py-3 items-center', idx < submissions.length - 1 ? 'border-b border-border' : ''].join(' ')}
+                  style={{ gridTemplateColumns: '1fr 1fr 100px 80px 80px' }}
                 >
-                  <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  <span className="text-[13px] font-medium text-text-primary flex items-center gap-1.5">
                     {(challenge as { title: string } | null)?.title ?? '-'}
-                    {sub.is_seed && (
-                      <span className="badge badge-muted" style={{ fontSize: '10px', marginLeft: '6px' }}>시드</span>
-                    )}
+                    {sub.is_seed && <Badge variant="muted" className="text-[10px]">시드</Badge>}
                   </span>
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span className="text-[13px] text-text-secondary">
                     {(user as { nickname: string } | null)?.nickname ?? '알 수 없음'}
                   </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  <span className="text-xs text-text-muted">
                     {new Date(sub.submitted_at).toLocaleDateString('ko-KR')}
                   </span>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: sub.final_rank && sub.final_rank <= 3 ? 'var(--warning)' : 'var(--text-secondary)' }}>
+                  <span className={['text-[13px] font-semibold', sub.final_rank && sub.final_rank <= 3 ? 'text-warning' : 'text-text-secondary'].join(' ')}>
                     {sub.final_rank ? `${sub.final_rank}위` : '-'}
                   </span>
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    {sub.final_vote_count ?? 0}
-                  </span>
+                  <span className="text-[13px] text-text-secondary">{sub.final_vote_count ?? 0}</span>
                 </div>
               )
             })}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

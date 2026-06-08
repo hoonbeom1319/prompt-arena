@@ -18,11 +18,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!profile?.is_admin) redirect('/')
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)' }}>
+    <div className="min-h-screen bg-bg-base">
       <Header />
 
-      <div style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }}>
-        <div className="container" style={{ display: 'flex', gap: '4px', padding: '8px 16px' }}>
+      <nav className="border-b border-border bg-bg-card" aria-label="관리자 메뉴">
+        <div className="container flex gap-1 px-4 py-2">
           {[
             { href: '/admin', label: '대시보드' },
             { href: '/admin/challenges', label: '챌린지' },
@@ -32,22 +32,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={item.href}
               href={item.href}
-              style={{
-                padding: '6px 14px',
-                fontSize: '13px',
-                fontWeight: '500',
-                color: 'var(--text-secondary)',
-                textDecoration: 'none',
-                borderRadius: '6px',
-              }}
+              className="px-3.5 py-1.5 text-[13px] font-medium text-text-secondary no-underline rounded-md hover:text-text-primary hover:bg-bg-base transition-colors"
             >
               {item.label}
             </Link>
           ))}
         </div>
-      </div>
+      </nav>
 
-      <main className="container" style={{ paddingTop: '32px', paddingBottom: '64px' }}>
+      <main className="container pt-8 pb-16">
         {children}
       </main>
     </div>

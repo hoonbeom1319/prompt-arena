@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
 import Header from '@/components/Header'
 import Link from 'next/link'
+import { Card } from '@/ds/card'
+import { Badge } from '@/ds/badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,36 +54,31 @@ export default async function ArchivePage() {
     }
   }
 
-  const STATE_COLORS: Record<string, string> = {
-    submission: '#10B981',
-    voting: '#F59E0B',
-    results: '#D97757',
-    idle: '#6B7280',
+  const STATE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'accent' | 'muted'> = {
+    submission: 'success',
+    voting: 'warning',
+    results: 'accent',
+    idle: 'muted',
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-base)' }}>
+    <div className="min-h-screen bg-bg-base">
       <Header />
 
-      <main className="container" style={{ paddingTop: '32px', paddingBottom: '64px' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
-            아카이브
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-            지금까지의 모든 챌린지를 확인해보세요
-          </p>
+      <main className="container pt-8 pb-16">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-text-primary mb-2">아카이브</h1>
+          <p className="text-sm text-text-secondary">지금까지의 모든 챌린지를 확인해보세요</p>
         </div>
 
         {challengesWithCounts.length === 0 ? (
-          <div className="card" style={{ padding: '64px', textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
-            <p style={{ fontSize: '16px', color: 'var(--text-muted)' }}>아직 챌린지가 없어요.</p>
-          </div>
+          <Card className="p-16 text-center">
+            <div className="text-5xl mb-4" aria-hidden="true">📭</div>
+            <p className="text-base text-text-muted">아직 챌린지가 없어요.</p>
+          </Card>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             {challengesWithCounts.map(challenge => {
-              const color = STATE_COLORS[challenge.state] ?? '#6B7280'
               const href = challenge.state === 'results'
                 ? `/challenge/${challenge.id}/results`
                 : challenge.state === 'voting'
@@ -94,62 +91,35 @@ export default async function ArchivePage() {
                 <Link
                   key={challenge.id}
                   href={href}
-                  style={{
-                    display: 'block',
-                    textDecoration: 'none',
-                  }}
+                  className="block no-underline group"
                 >
-                  <div className="card" style={{ padding: '20px', transition: 'box-shadow 0.15s', cursor: 'pointer' }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)')}
-                    onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)')}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                      <div style={{ flex: 1 }}>
-                        {/* State */}
-                        <div style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '3px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          backgroundColor: `${color}20`,
-                          color: color,
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          marginBottom: '8px',
-                        }}>
-                          <span style={{
-                            width: '5px',
-                            height: '5px',
-                            borderRadius: '50%',
-                            backgroundColor: color,
-                            display: 'inline-block',
-                          }} />
+                  <Card className="p-5 transition-shadow group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <Badge variant={STATE_BADGE_VARIANT[challenge.state] ?? 'muted'} className="mb-2">
                           {getStateLabel(challenge.state as 'submission' | 'voting' | 'results' | 'idle')}
-                        </div>
+                        </Badge>
 
-                        <h2 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px', lineHeight: '1.4' }}>
+                        <h2 className="text-base font-semibold text-text-primary mb-1.5 leading-snug">
                           {challenge.title}
                         </h2>
-                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '12px' }}>
+                        <p className="text-[13px] text-text-secondary leading-relaxed mb-3">
                           {challenge.instruction.length > 100
                             ? challenge.instruction.substring(0, 100) + '...'
                             : challenge.instruction}
                         </p>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                            {challenge.participantCount}명 참여
-                          </span>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs text-text-muted">{challenge.participantCount}명 참여</span>
+                          <span className="text-xs text-text-muted">
                             {new Date(challenge.created_at).toLocaleDateString('ko-KR')}
                           </span>
                         </div>
                       </div>
 
-                      <div style={{ fontSize: '20px', color: 'var(--text-muted)' }}>→</div>
+                      <span className="text-xl text-text-muted" aria-hidden="true">→</span>
                     </div>
-                  </div>
+                  </Card>
                 </Link>
               )
             })}

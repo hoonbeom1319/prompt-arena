@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/ds/button'
+import { Input, Textarea } from '@/ds/input'
+import { Label } from '@/ds/label'
+import { Card } from '@/ds/card'
 
 export default function NewChallengePage() {
   const router = useRouter()
@@ -46,10 +50,7 @@ export default function NewChallengePage() {
     const res = await fetch('/api/admin/challenges', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        temperature: parseFloat(form.temperature),
-      }),
+      body: JSON.stringify({ ...form, temperature: parseFloat(form.temperature) }),
     })
 
     const data = await res.json()
@@ -65,127 +66,114 @@ export default function NewChallengePage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px' }}>
-        새 챌린지 만들기
-      </h1>
+      <h1 className="text-[22px] font-bold text-text-primary mb-6">새 챌린지 만들기</h1>
 
       {/* AI Draft */}
-      <div className="card" style={{ padding: '20px', marginBottom: '24px', backgroundColor: 'var(--accent-light)', border: '1px solid rgba(217,119,87,0.3)' }}>
-        <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--accent)', marginBottom: '12px' }}>
-          AI로 챌린지 초안 생성
-        </h2>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
+      <Card className="p-5 mb-6 bg-accent-light border-accent/30">
+        <h2 className="text-sm font-bold text-accent mb-3">AI로 챌린지 초안 생성</h2>
+        <div className="flex gap-2">
+          <Input
             type="text"
             value={aiTopic}
             onChange={e => setAiTopic(e.target.value)}
             placeholder="주제를 입력하세요 (예: 여행 계획짜기, 시 쓰기)"
-            className="input"
+            aria-label="AI 챌린지 초안 주제"
           />
-          <button
+          <Button
+            type="button"
+            variant="accent"
             onClick={handleAiDraft}
             disabled={aiLoading || !aiTopic.trim()}
-            className="btn-accent"
-            style={{ flexShrink: 0 }}
+            className="shrink-0"
           >
             {aiLoading ? '생성 중...' : 'AI 생성'}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <form onSubmit={handleSubmit}>
-        <div className="card" style={{ padding: '24px', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>기본 정보</h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Card className="p-6 mb-4">
+          <h2 className="text-base font-bold mb-5">기본 정보</h2>
+          <div className="flex flex-col gap-4">
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                챌린지 제목 *
-              </label>
-              <input
+              <Label htmlFor="title">챌린지 제목 *</Label>
+              <Input
+                id="title"
                 type="text"
                 value={form.title}
                 onChange={e => update('title', e.target.value)}
-                className="input"
                 placeholder="20자 이내로 입력해주세요"
                 required
               />
             </div>
-
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                챌린지 설명 *
-              </label>
-              <textarea
+              <Label htmlFor="instruction">챌린지 설명 *</Label>
+              <Textarea
+                id="instruction"
                 value={form.instruction}
                 onChange={e => update('instruction', e.target.value)}
-                className="input"
                 placeholder="참가자들에게 어떤 프롬프트를 작성해야 하는지 설명해주세요"
                 rows={4}
                 required
               />
             </div>
-
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <Label htmlFor="wrapper_text">
                 래퍼 텍스트 (선택) — {'{{prompt}}'} 위치에 참가자 프롬프트가 삽입됩니다
-              </label>
-              <textarea
+              </Label>
+              <Textarea
+                id="wrapper_text"
                 value={form.wrapper_text}
                 onChange={e => update('wrapper_text', e.target.value)}
-                className="input"
                 placeholder="예: 다음 조건을 지키세요:\n{{prompt}}\n\n위 내용에 따라 결과를 만들어주세요."
                 rows={3}
               />
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="card" style={{ padding: '24px', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>AI 모델 설정</h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <Card className="p-6 mb-4">
+          <h2 className="text-base font-bold mb-5">AI 모델 설정</h2>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                모델
-              </label>
+              <Label htmlFor="model_name">모델</Label>
               <select
+                id="model_name"
                 value={form.model_name}
                 onChange={e => update('model_name', e.target.value)}
-                className="input"
-                style={{ cursor: 'pointer' }}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-border bg-bg-card text-text-primary outline-none focus:border-accent cursor-pointer"
               >
                 <option value="gemini-1.5-flash">gemini-1.5-flash (빠름)</option>
                 <option value="gemini-1.5-pro">gemini-1.5-pro (정확)</option>
                 <option value="gemini-2.0-flash">gemini-2.0-flash (최신)</option>
               </select>
             </div>
-
             <div>
-              <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Temperature: {form.temperature}
-              </label>
+              <Label htmlFor="temperature">Temperature: {form.temperature}</Label>
               <input
+                id="temperature"
                 type="range"
                 min="0"
                 max="1"
                 step="0.1"
                 value={form.temperature}
                 onChange={e => update('temperature', e.target.value)}
-                style={{ width: '100%', accentColor: 'var(--accent)' }}
+                className="w-full accent-accent mt-1"
+                aria-valuemin={0}
+                aria-valuemax={1}
+                aria-valuenow={parseFloat(form.temperature)}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              <div className="flex justify-between text-[11px] text-text-muted mt-1">
                 <span>정확 (0)</span>
                 <span>창의 (1)</span>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>일정 설정</h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <Card className="p-6 mb-6">
+          <h2 className="text-base font-bold mb-5">일정 설정</h2>
+          <div className="grid grid-cols-2 gap-4">
             {[
               { key: 'submission_start_at', label: '제출 시작' },
               { key: 'submission_end_at', label: '제출 마감' },
@@ -193,50 +181,36 @@ export default function NewChallengePage() {
               { key: 'voting_end_at', label: '투표 마감' },
             ].map(field => (
               <div key={field.key}>
-                <label style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  {field.label} *
-                </label>
-                <input
+                <Label htmlFor={field.key}>{field.label} *</Label>
+                <Input
+                  id={field.key}
                   type="datetime-local"
                   value={form[field.key as keyof typeof form]}
                   onChange={e => update(field.key, e.target.value)}
-                  className="input"
                   required
                 />
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {error && (
-          <div style={{
-            padding: '12px 16px',
-            backgroundColor: '#FEF2F2',
-            border: '1px solid #FECACA',
-            borderRadius: 'var(--radius-sm)',
-            color: 'var(--error)',
-            fontSize: '14px',
-            marginBottom: '16px',
-          }}>
+          <div role="alert" className="px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-error text-sm mb-4">
             {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-          <button
+        <div className="flex gap-2.5 justify-end">
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => router.push('/admin/challenges')}
-            className="btn-secondary"
           >
             취소
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-accent"
-          >
+          </Button>
+          <Button type="submit" variant="accent" disabled={loading}>
             {loading ? '생성 중...' : '챌린지 만들기'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

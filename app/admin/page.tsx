@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { Card } from '@/ds/card'
+import { Badge } from '@/ds/badge'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
-  // Stats
   const [
     { count: totalUsers },
     { count: totalChallenges },
@@ -18,14 +19,12 @@ export default async function AdminDashboard() {
     supabase.from('votes').select('*', { count: 'exact', head: true }),
   ])
 
-  // Total coins spent (Gemini API budget proxy)
   const { data: transactions } = await supabase
     .from('coin_transactions')
     .select('amount')
 
   const totalCoinsDistributed = transactions?.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0) ?? 0
 
-  // Recent activity
   const { data: recentChallenges } = await supabase
     .from('challenges')
     .select('id, title, created_at, is_active')
@@ -42,55 +41,39 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '24px' }}>
-        관리자 대시보드
-      </h1>
+      <h1 className="text-[22px] font-bold text-text-primary mb-6">관리자 대시보드</h1>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px', marginBottom: '32px' }}>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 mb-8">
         {stats.map(stat => (
-          <div key={stat.label} className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>{stat.icon}</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-              {stat.value.toLocaleString()}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{stat.label}</div>
-          </div>
+          <Card key={stat.label} className="p-5 text-center">
+            <div className="text-[28px] mb-1.5" aria-hidden="true">{stat.icon}</div>
+            <div className="text-2xl font-bold text-text-primary mb-1">{stat.value.toLocaleString()}</div>
+            <div className="text-xs text-text-muted">{stat.label}</div>
+          </Card>
         ))}
       </div>
 
       {/* Recent challenges */}
-      <div className="card" style={{ padding: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>
-          최근 챌린지
-        </h2>
-        {recentChallenges?.map(c => (
-          <div key={c.id} style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 0',
-            borderBottom: '1px solid var(--border)',
-          }}>
-            <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>{c.title}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+      <Card className="p-6">
+        <h2 className="text-base font-bold text-text-primary mb-4">최근 챌린지</h2>
+        {recentChallenges?.map((c, idx) => (
+          <div
+            key={c.id}
+            className={['flex items-center justify-between py-2.5', idx < (recentChallenges.length - 1) ? 'border-b border-border' : ''].join(' ')}
+          >
+            <span className="text-sm text-text-primary">{c.title}</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-text-muted">
                 {new Date(c.created_at).toLocaleDateString('ko-KR')}
               </span>
-              <span style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: c.is_active ? '#ECFDF5' : '#F3F4F6',
-                color: c.is_active ? 'var(--success)' : 'var(--text-muted)',
-                fontWeight: '600',
-              }}>
+              <Badge variant={c.is_active ? 'success' : 'muted'} className="text-[11px]">
                 {c.is_active ? '활성' : '비활성'}
-              </span>
+              </Badge>
             </div>
           </div>
         ))}
-      </div>
+      </Card>
     </div>
   )
 }

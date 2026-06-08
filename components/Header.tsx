@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/ds/button'
 import type { User } from '@supabase/supabase-js'
 
 interface UserProfile {
@@ -17,7 +18,7 @@ export default function Header() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -28,9 +29,7 @@ export default function Header() {
           .select('nickname, coin_balance, is_admin')
           .eq('id', user.id)
           .single()
-          .then(({ data }) => {
-            if (data) setProfile(data)
-          })
+          .then(({ data }) => { if (data) setProfile(data) })
       }
     })
 
@@ -42,16 +41,14 @@ export default function Header() {
           .select('nickname, coin_balance, is_admin')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }) => {
-            if (data) setProfile(data)
-          })
+          .then(({ data }) => { if (data) setProfile(data) })
       } else {
         setProfile(null)
       }
     })
 
     return () => subscription.unsubscribe()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -61,138 +58,68 @@ export default function Header() {
   }
 
   return (
-    <header style={{
-      backgroundColor: 'var(--bg-card)',
-      borderBottom: '1px solid var(--border)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-    }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '56px' }}>
-        {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-          <div style={{
-            width: '28px',
-            height: '28px',
-            backgroundColor: 'var(--accent)',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '14px',
-            fontWeight: '700',
-            color: 'white',
-          }}>
+    <header className="bg-bg-card border-b border-border sticky top-0 z-50">
+      <div className="container flex items-center justify-between h-14">
+        {/* 로고 */}
+        <Link href="/" className="flex items-center gap-2 no-underline">
+          <div className="w-7 h-7 bg-accent rounded-[8px] flex items-center justify-center text-sm font-bold text-white">
             P
           </div>
-          <span style={{
-            fontSize: '16px',
-            fontWeight: '700',
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.02em',
-          }}>
+          <span className="text-base font-bold text-text-primary tracking-tight">
             프롬프트 아레나
           </span>
         </Link>
 
         {/* Nav */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Link href="/archive" style={{
-            padding: '6px 12px',
-            fontSize: '14px',
-            color: 'var(--text-secondary)',
-            textDecoration: 'none',
-            borderRadius: '6px',
-            transition: 'color 0.15s',
-          }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+        <nav className="flex items-center gap-1" aria-label="주요 메뉴">
+          <Link
+            href="/archive"
+            className="px-3 py-1.5 text-sm text-text-secondary no-underline rounded-md hover:text-text-primary transition-colors"
           >
             아카이브
           </Link>
 
           {profile?.is_admin && (
-            <Link href="/admin" style={{
-              padding: '6px 12px',
-              fontSize: '14px',
-              color: 'var(--accent)',
-              textDecoration: 'none',
-              borderRadius: '6px',
-            }}>
+            <Link
+              href="/admin"
+              className="px-3 py-1.5 text-sm text-accent no-underline rounded-md hover:text-accent-hover transition-colors"
+            >
               관리자
             </Link>
           )}
 
           {user ? (
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 12px',
-                  backgroundColor: 'var(--bg-base)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  color: 'var(--text-primary)',
-                }}
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                aria-label="사용자 메뉴 열기"
+                className="flex items-center gap-2 px-3 py-1.5 bg-bg-base border border-border rounded-lg cursor-pointer text-sm text-text-primary hover:border-border-strong transition-colors"
               >
-                <span style={{ fontSize: '12px' }}>🪙</span>
-                <span style={{ fontWeight: '600', color: 'var(--accent)' }}>
-                  {profile?.coin_balance ?? 0}
-                </span>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {profile?.nickname ?? '...'}
-                </span>
+                <span className="text-xs" aria-hidden="true">🪙</span>
+                <span className="font-semibold text-accent">{profile?.coin_balance ?? 0}</span>
+                <span className="text-text-secondary">{profile?.nickname ?? '...'}</span>
               </button>
 
               {menuOpen && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 'calc(100% + 8px)',
-                  backgroundColor: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  boxShadow: 'var(--shadow-md)',
-                  minWidth: '160px',
-                  zIndex: 100,
-                  overflow: 'hidden',
-                }}>
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+8px)] bg-bg-card border border-border rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] min-w-[160px] z-50 overflow-hidden"
+                >
                   <Link
                     href="/profile"
+                    role="menuitem"
                     onClick={() => setMenuOpen(false)}
-                    style={{
-                      display: 'block',
-                      padding: '10px 16px',
-                      fontSize: '14px',
-                      color: 'var(--text-primary)',
-                      textDecoration: 'none',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-base)')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    className="block px-4 py-2.5 text-sm text-text-primary no-underline hover:bg-bg-base transition-colors"
                   >
                     내 프로필
                   </Link>
-                  <div style={{ borderTop: '1px solid var(--border)' }} />
+                  <div className="border-t border-border" role="separator" />
                   <button
+                    role="menuitem"
                     onClick={handleSignOut}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '10px 16px',
-                      fontSize: '14px',
-                      color: 'var(--error)',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-base)')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    className="block w-full text-left px-4 py-2.5 text-sm text-error bg-transparent border-none cursor-pointer hover:bg-bg-base transition-colors"
                   >
                     로그아웃
                   </button>
@@ -200,21 +127,18 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <Link
-              href="/auth/login"
-              className="btn-primary"
-              style={{ fontSize: '14px', padding: '8px 16px' }}
-            >
-              로그인
-            </Link>
+            <Button asChild variant="primary" size="sm" className="px-4 py-2">
+              <Link href="/auth/login">로그인</Link>
+            </Button>
           )}
         </nav>
       </div>
 
-      {/* Overlay for menu close */}
+      {/* 메뉴 닫기 오버레이 */}
       {menuOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+          className="fixed inset-0 z-40"
+          aria-hidden="true"
           onClick={() => setMenuOpen(false)}
         />
       )}
