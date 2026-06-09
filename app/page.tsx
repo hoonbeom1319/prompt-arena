@@ -92,7 +92,7 @@ export default async function HomePage() {
           <h2 className="text-base font-bold text-text-primary mb-5">어떻게 참여하나요?</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
             {[
-              { step: '1', icon: '✍️', title: '프롬프트 작성', desc: '챌린지 주제에 맞는 AI 프롬프트를 작성해요. 최대 5번 시도할 수 있어요.' },
+              { step: '1', icon: '✍️', title: '프롬프트 작성', desc: '챌린지 주제에 맞는 AI 프롬프트를 작성해요. 최대 3번 시도할 수 있어요.' },
               { step: '2', icon: '🤖', title: 'AI 응답 확인', desc: 'Gemini AI가 내 프롬프트로 응답을 생성해요.' },
               { step: '3', icon: '🗳️', title: '투표 참여', desc: '다른 참가자들의 AI 응답을 보고 최고의 결과물에 투표해요.' },
               { step: '4', icon: '🏆', title: '순위 공개', desc: '투표 결과로 순위가 매겨지고 코인이 지급돼요.' },

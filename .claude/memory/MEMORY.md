@@ -4,3 +4,4 @@
 - [프로젝트 철학](project_philosophy.md) — AI 주도 개발 프로세스 실험 프로젝트. 컨벤션은 AI-사람 간 공유 언어
 - [메모리 워크플로우](feedback_memory_workflow.md) — 세션 끝에 .claude/memory/ 업데이트 + commit. push는 사용자가 직접
 - [프로젝트 상태](project_state.md) — 완료 작업 및 미해결 항목 스냅샷 (2026-06-08)
+- [Gemini 결제/모델 (해결됨)](blocker_gemini_billing.md) — 선불 충전으로 해결. 모델은 gemini-2.5-flash 사용 (1.5/2.0은 죽음) (2026-06-09)

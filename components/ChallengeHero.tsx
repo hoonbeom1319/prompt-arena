@@ -57,12 +57,7 @@ export default function ChallengeHero({
       case 'submission':
         if (userSubmission) {
           return (
-            <div className="flex flex-col items-center gap-2">
-              <Badge variant="success" className="text-sm px-4 py-1.5">제출 완료</Badge>
-              <Button asChild variant="secondary" size="md">
-                <Link href={`/challenge/${challenge.id}/generate`}>다시 시도하기 (5회 중)</Link>
-              </Button>
-            </div>
+            <Badge variant="success" className="text-sm px-4 py-1.5">제출 완료</Badge>
           )
         }
         return (

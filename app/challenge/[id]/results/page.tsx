@@ -1,10 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import VoteCard from '@/components/VoteCard'
+import CopyLinkButton from './CopyLinkButton'
+import { rankSubmissions } from '@/lib/ranking'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
-import { Button } from '@/ds/button'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -23,7 +24,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function ResultsPage({ params }: PageProps) {
   const { id } = await params
-  const supabase = await createClient()
+  // 결과는 전체 공개(PRD §4.0-E). 남의 generation·닉네임을 읽어야 하므로 RLS를 우회하는 service client 사용.
+  const supabase = await createServiceClient()
 
   const { data: challenge } = await supabase
     .from('challenges')
@@ -82,7 +84,7 @@ export default async function ResultsPage({ params }: PageProps) {
   } else {
     const { data: allSubs } = await supabase
       .from('submissions')
-      .select(`id, user_id, generations!inner(prompt_text, result_text)`)
+      .select(`id, user_id, submitted_at, generations!inner(prompt_text, result_text, attempt_number)`)
       .eq('challenge_id', id)
       .eq('is_seed', false)
 
@@ -106,25 +108,33 @@ export default async function ResultsPage({ params }: PageProps) {
       const userMap: Record<string, string> = {}
       users?.forEach((u: { id: string; nickname: string }) => { userMap[u.id] = u.nickname })
 
-      const sorted = [...allSubs].sort((a: { id: string }, b: { id: string }) =>
-        (voteCounts[b.id] ?? 0) - (voteCounts[a.id] ?? 0)
-      )
-
-      rankedSubs = sorted.map((s: {
+      // finalize와 동일한 규칙(득표→시도수→제출시각, 동률 공동순위)으로 미리보기 순위 계산
+      const rankable = allSubs.map((s: {
         id: string;
         user_id: string;
-        generations: { prompt_text: string; result_text: string } | Array<{ prompt_text: string; result_text: string }>;
-      }, i: number) => {
+        submitted_at: string;
+        generations: { prompt_text: string; result_text: string; attempt_number: number } | Array<{ prompt_text: string; result_text: string; attempt_number: number }>;
+      }) => {
         const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
         return {
           id: s.id,
-          rank: i + 1,
-          final_vote_count: voteCounts[s.id] ?? 0,
+          user_id: s.user_id,
+          voteCount: voteCounts[s.id] ?? 0,
+          attemptNumber: gen?.attempt_number ?? 1,
+          submittedAt: s.submitted_at,
           result_text: gen?.result_text ?? '',
           prompt_text: gen?.prompt_text ?? '',
-          user_nickname: userMap[s.user_id] ?? '익명',
         }
       })
+
+      rankedSubs = rankSubmissions(rankable).map(s => ({
+        id: s.id,
+        rank: s.rank,
+        final_vote_count: s.voteCount,
+        result_text: s.result_text,
+        prompt_text: s.prompt_text,
+        user_nickname: userMap[s.user_id] ?? '익명',
+      }))
     }
   }
 
@@ -145,17 +155,7 @@ export default async function ResultsPage({ params }: PageProps) {
           <Badge variant="accent" className="mb-3">결과 공개</Badge>
           <h1 className="text-[22px] font-bold text-text-primary mb-2">{challenge.title}</h1>
           <p className="text-sm text-text-secondary leading-relaxed mb-4">{challenge.instruction}</p>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                navigator.clipboard.writeText(window.location.href)
-              }
-            }}
-          >
-            링크 복사
-          </Button>
+          <CopyLinkButton />
         </Card>
 
         {/* Winner highlight */}

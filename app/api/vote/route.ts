@@ -5,6 +5,57 @@ import { awardCoins, COIN_AMOUNTS } from '@/lib/coins'
 
 const MAX_VOTES = 3
 
+// 투표 목록 조회 — RLS(generations_owner)로 남의 결과물을 못 읽으므로 service client로 우회한다.
+// 블라인드 규칙은 여기서 강제: prompt_text는 본인이 3표를 다 써서 공개(reveal)된 경우에만 내려준다.
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: '로그인이 필요해요.' }, { status: 401 })
+    }
+
+    const challengeId = request.nextUrl.searchParams.get('challengeId')
+    if (!challengeId) {
+      return NextResponse.json({ error: '챌린지 ID가 필요해요.' }, { status: 400 })
+    }
+
+    const serviceSupabase = await createServiceClient()
+
+    const { data: myVotes } = await serviceSupabase
+      .from('votes')
+      .select('submission_id')
+      .eq('user_id', user.id)
+      .eq('challenge_id', challengeId)
+
+    const votedSubmissionIds = (myVotes ?? []).map(v => v.submission_id)
+    const revealed = votedSubmissionIds.length >= MAX_VOTES
+
+    const { data: subs } = await serviceSupabase
+      .from('submissions')
+      .select('id, generations!inner(result_text, prompt_text)')
+      .eq('challenge_id', challengeId)
+      .eq('is_seed', false)
+
+    const submissions = (subs ?? []).map((s: {
+      id: string
+      generations: { result_text: string; prompt_text: string } | Array<{ result_text: string; prompt_text: string }>
+    }) => {
+      const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
+      return {
+        id: s.id,
+        result_text: gen?.result_text ?? '',
+        prompt_text: revealed ? (gen?.prompt_text ?? '') : null,
+      }
+    })
+
+    return NextResponse.json({ submissions, votedSubmissionIds, votesUsed: votedSubmissionIds.length, revealed })
+  } catch (err) {
+    console.error('Vote list error:', err)
+    return NextResponse.json({ error: '서버 오류가 발생했어요.' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()

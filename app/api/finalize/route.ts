@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from '@/lib/coins'
+import { rankSubmissions } from '@/lib/ranking'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,10 +56,10 @@ export async function POST(request: NextRequest) {
 
     const serviceSupabase = await createServiceClient()
 
-    // Get all submissions
+    // Get all submissions (정렬용 시도횟수·제출시각 포함)
     const { data: submissions } = await serviceSupabase
       .from('submissions')
-      .select('id, user_id')
+      .select('id, user_id, submitted_at, generations!inner(attempt_number)')
       .eq('challenge_id', challengeId)
       .eq('is_seed', false)
 
@@ -76,13 +77,27 @@ export async function POST(request: NextRequest) {
       voteCounts[sub.id] = count ?? 0
     }
 
-    // Sort by vote count descending
-    const sorted = [...submissions].sort((a, b) => (voteCounts[b.id] ?? 0) - (voteCounts[a.id] ?? 0))
+    // 득표 → 시도수 → 제출시각 순으로 순위 결정 (동률 전부 같으면 공동 순위)
+    const rankable = submissions.map((sub: {
+      id: string
+      user_id: string
+      submitted_at: string
+      generations: { attempt_number: number } | Array<{ attempt_number: number }>
+    }) => {
+      const gen = Array.isArray(sub.generations) ? sub.generations[0] : sub.generations
+      return {
+        id: sub.id,
+        user_id: sub.user_id,
+        voteCount: voteCounts[sub.id] ?? 0,
+        attemptNumber: gen?.attempt_number ?? 1,
+        submittedAt: sub.submitted_at,
+      }
+    })
+    const sorted = rankSubmissions(rankable)
 
     // Update each submission with rank and vote count
-    for (let i = 0; i < sorted.length; i++) {
-      const sub = sorted[i]
-      const rank = i + 1
+    for (const sub of sorted) {
+      const rank = sub.rank
 
       await serviceSupabase
         .from('submissions')

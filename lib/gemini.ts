@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function generateWithPrompt({
   prompt,
-  modelName = 'gemini-1.5-flash',
+  modelName = 'gemini-2.5-flash',
   temperature = 0.7,
   wrapperText,
 }: {
@@ -20,8 +20,12 @@ export async function generateWithPrompt({
     },
   })
 
+  // wrapperText에 {{prompt}}가 있으면 그 자리에(여러 개면 전부) 치환,
+  // 래퍼는 있는데 placeholder가 없으면 참가자 프롬프트를 버리지 말고 뒤에 이어붙인다.
   const fullPrompt = wrapperText
-    ? wrapperText.replace('{{prompt}}', prompt)
+    ? wrapperText.includes('{{prompt}}')
+      ? wrapperText.replaceAll('{{prompt}}', prompt)
+      : `${wrapperText}\n\n${prompt}`
     : prompt
 
   const result = await model.generateContent(fullPrompt)
@@ -36,7 +40,7 @@ export async function generateChallengeDraft(topic: string): Promise<{
   instruction: string
 }> {
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       temperature: 0.8,
       responseMimeType: 'application/json',

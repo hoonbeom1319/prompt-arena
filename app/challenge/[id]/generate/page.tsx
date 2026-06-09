@@ -24,7 +24,7 @@ interface Challenge {
   instruction: string
 }
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 3
 
 export default function GeneratePage() {
   const params = useParams()
@@ -89,7 +89,7 @@ export default function GeneratePage() {
   const handleGenerate = async () => {
     if (!promptText.trim()) return
     if (generations.length >= MAX_ATTEMPTS) {
-      setError('최대 5번까지만 시도할 수 있어요.')
+      setError(`최대 ${MAX_ATTEMPTS}번까지만 시도할 수 있어요.`)
       return
     }
 

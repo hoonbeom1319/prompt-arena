@@ -59,40 +59,28 @@ export default function VotePage() {
       if (cancelled) return
       if (!ch) { router.push('/'); return }
 
-      const { data: subs } = await supabase
-        .from('submissions')
-        .select(`id, generations!inner(result_text, prompt_text)`)
-        .eq('challenge_id', id)
-        .eq('is_seed', false)
-
-      const { data: votes } = await supabase
-        .from('votes')
-        .select('submission_id')
-        .eq('challenge_id', id)
-        .eq('user_id', user.id)
+      // RLS로 남의 결과물을 못 읽으므로 서버 API(service client)에서 블라인드 목록을 받는다.
+      const res = await fetch(`/api/vote?challengeId=${id}`)
+      const data = await res.json()
 
       if (cancelled) return
 
       setChallenge(ch)
 
-      if (subs) {
-        const mapped = subs.map((s: {
-          id: string;
-          generations: { result_text: string; prompt_text: string } | Array<{ result_text: string; prompt_text: string }>
-        }) => {
-          const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
-          return { id: s.id, result_text: gen?.result_text ?? '', _prompt: gen?.prompt_text ?? '' }
-        })
-        setSubmissions(mapped.map(m => ({ id: m.id, result_text: m.result_text })))
+      if (res.ok) {
+        setSubmissions(data.submissions.map((s: { id: string; result_text: string }) => ({
+          id: s.id,
+          result_text: s.result_text,
+        })))
         const pm: Record<string, string> = {}
-        mapped.forEach(m => { pm[m.id] = m._prompt })
+        data.submissions.forEach((s: { id: string; prompt_text: string | null }) => {
+          if (s.prompt_text != null) pm[s.id] = s.prompt_text
+        })
         setPromptMap(pm)
-      }
-
-      if (votes) {
-        const voteStates = votes.map(v => ({ submissionId: v.submission_id }))
-        setMyVotes(voteStates)
-        if (voteStates.length >= MAX_VOTES) setRevealed(true)
+        setMyVotes(data.votedSubmissionIds.map((sid: string) => ({ submissionId: sid })))
+        if (data.revealed) setRevealed(true)
+      } else {
+        setError(data.error || '목록을 불러오지 못했어요.')
       }
 
       setPageLoading(false)
@@ -123,7 +111,19 @@ export default function VotePage() {
     } else {
       const newVotes = [...myVotes, { submissionId }]
       setMyVotes(newVotes)
-      if (newVotes.length >= MAX_VOTES) setRevealed(true)
+      if (newVotes.length >= MAX_VOTES) {
+        setRevealed(true)
+        // 3표를 다 쓰면 프롬프트가 공개되므로 목록을 다시 받아 promptMap을 채운다.
+        const listRes = await fetch(`/api/vote?challengeId=${id}`)
+        const listData = await listRes.json()
+        if (listRes.ok) {
+          const pm: Record<string, string> = {}
+          listData.submissions.forEach((s: { id: string; prompt_text: string | null }) => {
+            if (s.prompt_text != null) pm[s.id] = s.prompt_text
+          })
+          setPromptMap(pm)
+        }
+      }
     }
 
     setVoting(false)

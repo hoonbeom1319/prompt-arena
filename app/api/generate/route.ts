@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { generateWithPrompt } from '@/lib/gemini'
 import { getChallengeState } from '@/lib/challenge-state'
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 3
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       .eq('challenge_id', challengeId)
 
     if ((count ?? 0) >= MAX_ATTEMPTS) {
-      return NextResponse.json({ error: '최대 5번까지만 시도할 수 있어요.' }, { status: 429 })
+      return NextResponse.json({ error: `최대 ${MAX_ATTEMPTS}번까지만 시도할 수 있어요.` }, { status: 429 })
     }
 
     const attemptNumber = (count ?? 0) + 1

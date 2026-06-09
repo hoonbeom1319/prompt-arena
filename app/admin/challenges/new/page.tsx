@@ -7,18 +7,23 @@ import { Input, Textarea } from '@/ds/input'
 import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
 
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
+const addDays = (date: string, n: number) => {
+  const d = new Date(`${date}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  return d
+}
+
 export default function NewChallengePage() {
   const router = useRouter()
   const [form, setForm] = useState({
     title: '',
     instruction: '',
-    model_name: 'gemini-1.5-flash',
+    model_name: 'gemini-2.5-flash',
     temperature: '0.7',
     wrapper_text: '',
-    submission_start_at: '',
-    submission_end_at: '',
-    voting_start_at: '',
-    voting_end_at: '',
+    submission_date: '',
   })
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
@@ -143,9 +148,9 @@ export default function NewChallengePage() {
                 onChange={e => update('model_name', e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-border bg-bg-card text-text-primary outline-none focus:border-accent cursor-pointer"
               >
-                <option value="gemini-1.5-flash">gemini-1.5-flash (빠름)</option>
-                <option value="gemini-1.5-pro">gemini-1.5-pro (정확)</option>
-                <option value="gemini-2.0-flash">gemini-2.0-flash (최신)</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash (빠름)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro (정확)</option>
+                <option value="gemini-3.5-flash">gemini-3.5-flash (최신)</option>
               </select>
             </div>
             <div>
@@ -172,26 +177,38 @@ export default function NewChallengePage() {
         </Card>
 
         <Card className="p-6 mb-6">
-          <h2 className="text-base font-bold mb-5">일정 설정</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { key: 'submission_start_at', label: '제출 시작' },
-              { key: 'submission_end_at', label: '제출 마감' },
-              { key: 'voting_start_at', label: '투표 시작' },
-              { key: 'voting_end_at', label: '투표 마감' },
-            ].map(field => (
-              <div key={field.key}>
-                <Label htmlFor={field.key}>{field.label} *</Label>
-                <Input
-                  id={field.key}
-                  type="datetime-local"
-                  value={form[field.key as keyof typeof form]}
-                  onChange={e => update(field.key, e.target.value)}
-                  required
-                />
-              </div>
-            ))}
+          <h2 className="text-base font-bold mb-1">일정 설정</h2>
+          <p className="text-xs text-text-muted mb-5">
+            제출일만 고르면 투표·결과 공개일은 자동으로 정해져요. (제출 → 다음 날 투표 → 그 다음 날 결과)
+          </p>
+          <div className="max-w-[240px]">
+            <Label htmlFor="submission_date">제출일 *</Label>
+            <Input
+              id="submission_date"
+              type="date"
+              value={form.submission_date}
+              onChange={e => update('submission_date', e.target.value)}
+              required
+            />
           </div>
+
+          {form.submission_date && (
+            <div className="mt-4 flex flex-wrap gap-2 text-[13px]" aria-live="polite">
+              {[
+                { label: '제출', day: formatDay(addDays(form.submission_date, 0)), color: 'text-success' },
+                { label: '투표', day: formatDay(addDays(form.submission_date, 1)), color: 'text-warning' },
+                { label: '결과', day: formatDay(addDays(form.submission_date, 2)), color: 'text-accent' },
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-base border border-border rounded-full"
+                >
+                  <span className={`font-semibold ${item.color}`}>{item.label}</span>
+                  <span className="text-text-secondary">{item.day}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {error && (
