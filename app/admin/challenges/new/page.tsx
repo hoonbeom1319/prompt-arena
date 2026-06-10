@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/ds/button'
 import { Input, Textarea } from '@/ds/input'
 import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
+import { createClient } from '@/lib/supabase/client'
+import { getChallengeState } from '@/lib/challenge-state'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
@@ -29,6 +31,29 @@ export default function NewChallengePage() {
   const [aiLoading, setAiLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [aiTopic, setAiTopic] = useState('')
+  const [activeConflict, setActiveConflict] = useState<{ title: string; state: 'submission' | 'voting' } | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('challenges')
+      .select('id, title, instruction, submission_start_at, submission_end_at, voting_start_at, voting_end_at, category_id, challenge_type, model_name, temperature, wrapper_text, created_by, is_active, created_at')
+      .eq('is_active', true)
+      .then(({ data }) => {
+        if (!data) return
+        const now = new Date()
+        const conflict = data.find(c => {
+          const s = getChallengeState(c, now)
+          return s === 'submission' || s === 'voting'
+        })
+        if (conflict) {
+          const s = getChallengeState(conflict, now)
+          if (s === 'submission' || s === 'voting') {
+            setActiveConflict({ title: conflict.title, state: s })
+          }
+        }
+      })
+  }, [])
 
   const handleAiDraft = async () => {
     if (!aiTopic.trim()) return
@@ -72,6 +97,19 @@ export default function NewChallengePage() {
   return (
     <div>
       <h1 className="text-[22px] font-bold text-text-primary mb-6">새 챌린지 만들기</h1>
+
+      {activeConflict && (
+        <div role="alert" className="px-4 py-3.5 bg-[#FFFBEB] border border-[#FCD34D] rounded-lg mb-6">
+          <p className="text-sm font-semibold text-[#92400E] mb-0.5">
+            진행 중인 챌린지가 있어요
+          </p>
+          <p className="text-sm text-[#92400E]">
+            &lsquo;{activeConflict.title}&rsquo;이 현재{' '}
+            <strong>{activeConflict.state === 'submission' ? '제출' : '투표'} 중</strong>입니다.
+            지금 새 챌린지를 만들면 홈 화면이 새 챌린지로 덮어씌워져요.
+          </p>
+        </div>
+      )}
 
       {/* AI Draft */}
       <Card className="p-5 mb-6 bg-accent-light border-accent/30">
