@@ -9,7 +9,7 @@ import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 import { Button } from '@/ds/button'
 import { ChallengeState } from '@/lib/challenge-state'
-import { MIN_PARTICIPANTS, MAX_GENERATIONS } from '@/lib/constants'
+import { MAX_GENERATIONS } from '@/lib/constants'
 
 export interface TopRankEntry {
   id: string
@@ -182,7 +182,6 @@ export default function HomeBody(props: HomeBodyProps) {
           )}
           <StatsRow stats={[
             { value: String(participantCount), label: '참가자' },
-            { value: `${MIN_PARTICIPANTS}↑`, label: '성립 기준' },
             { value: `${userGenCount}/${MAX_GENERATIONS}`, label: '내 시도' },
           ]} />
           <UserStatusCard
