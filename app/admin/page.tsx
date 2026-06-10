@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
+import ResetButton from './ResetButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +42,10 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-bold text-text-primary mb-6">관리자 대시보드</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-[22px] font-bold text-text-primary">관리자 대시보드</h1>
+        <ResetButton />
+      </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 mb-8">
