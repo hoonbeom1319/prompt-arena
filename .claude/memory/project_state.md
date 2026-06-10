@@ -19,31 +19,11 @@ metadata:
   `CRON_SECRET` 인증 헤더. `finalizeChallenge()`를 cron·수동 모두 공유.
 
 ### 다음 세션 TODO
-1. **중복 코인 정리 (DB 작업)** — 테스트 챌린지(`11ad52e9-44a4-4b7f-a77b-869b320639ce`)에
-   1등+100/2등+50/3등+25 보상이 2배치(10:09, 10:10) 중복 삽입됨. 2번째 배치 삭제 필요.
-   아래 SQL을 Supabase SQL Editor에서 실행:
-   ```sql
-   -- 먼저 확인
-   SELECT id, user_id, amount, description, created_at
-   FROM coin_ledger
-   WHERE challenge_id = '11ad52e9-44a4-4b7f-a77b-869b320639ce'
-     AND description LIKE '%등 보상'
-   ORDER BY created_at;
+1. **Google OAuth redirect_uri_mismatch** — Google Cloud Console에서 redirect_uri 등록 (코드 문제 아님).
 
-   -- 중복 확인 후 두 번째 배치(10:10 시간대) DELETE
-   DELETE FROM coin_ledger
-   WHERE id IN (
-     SELECT id FROM coin_ledger
-     WHERE challenge_id = '11ad52e9-44a4-4b7f-a77b-869b320639ce'
-       AND description LIKE '%등 보상'
-       AND created_at > '2026-06-09T10:09:30Z'  -- 두 번째 배치 시작 시간으로 조정
-   );
-   ```
-2. **CRON_SECRET 환경변수 설정** — `.env.local`에 `CRON_SECRET=<random>` 추가,
-   Vercel 대시보드 환경변수에도 동일 값 설정.
-3. **is_seed 설계 모순 결정** — 투표 페이지가 `is_seed=true` 제외하는데 admin seed는 `is_seed=true`로 생성.
-   운영자 콜드스타트 시드를 투표에 포함할지 결정 필요.
-4. **Google OAuth redirect_uri_mismatch** — Google Cloud Console에서 redirect_uri 등록 (코드 문제 아님).
+### 완료된 인프라 작업 (2026-06-10)
+- 중복 코인 정리 완료 — `coin_transactions` 테이블에서 두 번째 배치 삭제 (테이블명 `coin_transactions`, 컬럼명 `reason`)
+- `CRON_SECRET` 환경변수 설정 완료 — `.env.local` + Vercel 대시보드
 
 ### 기타 관찰
 - Vercel Cron은 Hobby 플랜에서 하루 1회 실행 가능. Pro 이상이면 더 자주 설정 가능.

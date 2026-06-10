@@ -86,7 +86,6 @@ export default async function ResultsPage({ params }: PageProps) {
       .from('submissions')
       .select(`id, user_id, submitted_at, generations!inner(prompt_text, result_text, attempt_number)`)
       .eq('challenge_id', id)
-      .eq('is_seed', false)
 
     if (allSubs) {
       const subIds = allSubs.map((s: { id: string }) => s.id)

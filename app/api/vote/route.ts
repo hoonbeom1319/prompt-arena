@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
       .from('submissions')
       .select('id, generations!inner(result_text, prompt_text)')
       .eq('challenge_id', challengeId)
-      .eq('is_seed', false)
 
     const submissions = (subs ?? []).map((s: {
       id: string
