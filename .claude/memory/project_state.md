@@ -5,9 +5,19 @@ metadata:
   type: project
 ---
 
-## 2026-06-10 세션 — lint 수정 + finalize 멱등성 + Vercel Cron
+## 2026-06-10 세션 (2) — hb-kit 디자인 시스템 업데이트
 
-### 이번 세션 완료
+### 이번 세션 완료 (2)
+- **디자인 시스템 전면 업데이트** — hb-kit 디자인 핸드오프(`docs/design_handoff_prompt_arena/`) 기반.
+  - 색상: 탠저린→sky-600 accent, slate 뉴트럴, 전 토큰 OKLCH
+  - 폰트: Pretendard 자체 호스팅 (woff2 × 5, `public/fonts/`)
+  - 반경: 8/12/16px → 6/8/12px (평탄한 flat shadow)
+  - DS 컴포넌트: Button/Card/Badge 핸드오프 스펙 반영
+  - ChallengeHero: gradient 제거 + phase strip (제출→투표→결과 진행 표시)
+  - ResultsPage: 우승 카드 sky accent 적용
+  - ESLint: `docs/**` globalIgnores 추가 (디자인 파일 jsx 오류 방지)
+
+### 이전 세션 완료
 - **lint 전량 수정** — `types/**` globalIgnores 추가(Next.js 자동생성), `require()` → ESM import(`mock-supabase.ts`),
   미사용 import 제거(`CardContent`), dead code 제거(`makeCountBuilder`), `_isCountBuilder` 리네임.
   `argsIgnorePattern/varsIgnorePattern: '^_'` ESLint 규칙 추가.
@@ -19,7 +29,7 @@ metadata:
   `CRON_SECRET` 인증 헤더. `finalizeChallenge()`를 cron·수동 모두 공유.
 
 ### 다음 세션 TODO
-1. **Google OAuth redirect_uri_mismatch** — Google Cloud Console에서 redirect_uri 등록 (코드 문제 아님).
+- 현재 미결 항목 없음. 새 기능 요구사항 생기면 추가.
 
 ### 완료된 인프라 작업 (2026-06-10)
 - 중복 코인 정리 완료 — `coin_transactions` 테이블에서 두 번째 배치 삭제 (테이블명 `coin_transactions`, 컬럼명 `reason`)
