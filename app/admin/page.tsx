@@ -127,16 +127,6 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* PRD A-7 예산: schema에 추적 테이블 없음 → 목업 수치 넣지 않음 */}
-      <Card className="p-4 mb-6 border-dashed">
-        <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">
-          예산 사용량 (PRD A-7)
-        </div>
-        <p className="text-sm text-text-secondary">
-          Gemini API 비용 추적은 아직 DB·API에 없습니다. 콘솔 $100 상한·80% 알림·챌린지 예산 게이트는 별도 구현 예정입니다.
-        </p>
-      </Card>
-
       <Card className="p-4">
         <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3">
           챌린지 상태 (시각 계산 · DB에 상태 필드 없음)

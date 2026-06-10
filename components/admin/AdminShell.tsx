@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/admin', label: '대시보드', exact: true },
-  { href: '/admin/challenges/new', label: '챌린지 출제' },
+  { href: '/admin/challenges', label: '챌린지 관리' },
   { href: '/admin/seed', label: '시드 제출' },
   { href: '/admin/submissions', label: '출품·결과' },
   { href: '/admin/users', label: '사용자·코인' },

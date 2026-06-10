@@ -6,6 +6,7 @@ import TabBar from '@/components/TabBar'
 import RankBadge from '@/components/RankBadge'
 import { Card } from '@/ds/card'
 import LogoutButton from './LogoutButton'
+import { NicknameEditor } from './NicknameEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,9 +64,7 @@ export default async function ProfilePage() {
             {initial}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[15px] font-bold text-text-primary truncate">
-              익명#{anonId}
-            </div>
+            <NicknameEditor nickname={profile.nickname} />
             <div className="text-xs text-text-muted mt-0.5">{joinMonth} 가입</div>
           </div>
         </Card>

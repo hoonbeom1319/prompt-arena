@@ -41,7 +41,7 @@ export default function AppBar({ title, showBack, backHref, statusLabel, statusV
 
         <h1 className="text-base font-bold text-text-primary text-center truncate">{title}</h1>
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end min-w-[48px]">
           {rightContent ?? (statusLabel && (
             <Badge variant={statusVariant}>{statusLabel}</Badge>
           ))}

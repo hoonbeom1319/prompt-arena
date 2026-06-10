@@ -10,14 +10,14 @@ export const dynamic = 'force-dynamic'
 
 export default async function ArchivePage() {
   const supabase = await createClient()
+  const now = new Date()
 
   const { data: challenges } = await supabase
     .from('challenges')
     .select('*')
     .eq('is_active', true)
+    .lt('voting_end_at', now.toISOString())
     .order('created_at', { ascending: false })
-
-  const now = new Date()
 
   interface ChallengeWithCount {
     id: string
