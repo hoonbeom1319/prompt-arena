@@ -14,7 +14,7 @@ let mockGeminiResult = 'AI generated text'
 let mockGeminiShouldFail = false
 
 vi.mock('@/lib/supabase/server', () => {
-  function makeBuilder(resolverFn: () => unknown, isCountBuilder = false) {
+  function makeBuilder(resolverFn: () => unknown, _isCountBuilder = false) {
     const b: Record<string, unknown> = {
       select: vi.fn((_f: unknown, opts?: { count?: string }) => {
         if (opts?.count) return makeBuilder(resolverFn, true)

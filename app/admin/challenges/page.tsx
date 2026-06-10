@@ -15,6 +15,15 @@ export default async function AdminChallengesPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
+  // 이미 확정된 챌린지 ID 목록 — final_rank가 하나라도 있으면 확정됨
+  const { data: finalizedRows } = await supabase
+    .from('submissions')
+    .select('challenge_id')
+    .eq('is_seed', false)
+    .not('final_rank', 'is', null)
+
+  const finalizedIds = new Set(finalizedRows?.map((r) => r.challenge_id) ?? [])
+
   const now = new Date()
 
   return (
@@ -33,6 +42,7 @@ export default async function AdminChallengesPage() {
           <div>
             {challenges.map((c, idx) => {
               const state = getChallengeState(c, now)
+              const isFinalized = finalizedIds.has(c.id)
               const STATE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'accent' | 'muted'> = {
                 submission: 'success', voting: 'warning', results: 'accent', idle: 'muted',
               }
@@ -46,6 +56,9 @@ export default async function AdminChallengesPage() {
                       <Badge variant={STATE_BADGE_VARIANT[state]} className="text-[11px]">
                         {getStateLabel(state)}
                       </Badge>
+                      {isFinalized && (
+                        <Badge variant="success" className="text-[11px]">확정됨</Badge>
+                      )}
                       {!c.is_active && (
                         <Badge variant="muted" className="text-[11px]">비활성</Badge>
                       )}
@@ -61,7 +74,7 @@ export default async function AdminChallengesPage() {
                     <Button asChild variant="secondary" size="sm">
                       <Link href={`/challenge/${c.id}/results`}>결과 보기</Link>
                     </Button>
-                    <FinalizeButton challengeId={c.id} state={state} />
+                    <FinalizeButton challengeId={c.id} state={state} isFinalized={isFinalized} />
                   </div>
                 </div>
               )
@@ -73,8 +86,8 @@ export default async function AdminChallengesPage() {
   )
 }
 
-function FinalizeButton({ challengeId, state }: { challengeId: string; state: string }) {
-  if (state !== 'results') return null
+function FinalizeButton({ challengeId, state, isFinalized }: { challengeId: string; state: string; isFinalized: boolean }) {
+  if (state !== 'results' || isFinalized) return null
   return (
     <form action="/api/finalize" method="POST">
       <input type="hidden" name="challengeId" value={challengeId} />

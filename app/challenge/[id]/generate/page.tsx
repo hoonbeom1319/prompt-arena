@@ -8,7 +8,7 @@ import SubmissionCard from '@/components/SubmissionCard'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
-import { Card, CardContent } from '@/ds/card'
+import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 
 interface Generation {

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import Header from '@/components/Header'
 import ChallengeHero from '@/components/ChallengeHero'
-import { Card, CardContent } from '@/ds/card'
+import { Card } from '@/ds/card'
 
 export const dynamic = 'force-dynamic'
 

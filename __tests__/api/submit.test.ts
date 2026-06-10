@@ -40,26 +40,6 @@ vi.mock('@/lib/supabase/server', () => {
     return b
   }
 
-  function makeCountBuilder() {
-    const b: Record<string, unknown> = {
-      select: vi.fn((_f: unknown, opts?: { count?: string }) => {
-        if (opts?.count) {
-          return {
-            eq: vi.fn(() => ({ eq: vi.fn(() => ({ count: mockSubmissionCount, error: null })) })),
-          }
-        }
-        return b
-      }),
-      eq: vi.fn(() => b),
-      single: vi.fn(() => Promise.resolve(
-        mockExistingSubmission
-          ? { data: mockExistingSubmission, error: null }
-          : { data: null, error: { code: 'PGRST116' } }
-      )),
-    }
-    return b
-  }
-
   return {
     createClient: vi.fn(async () => ({
       auth: { getUser: vi.fn(async () => ({ data: { user: mockUser }, error: null })) },

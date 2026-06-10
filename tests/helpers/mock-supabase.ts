@@ -8,6 +8,8 @@
  * Storage key format: sb-${projectRef}-auth-token
  * where projectRef = first segment of the Supabase URL hostname.
  */
+import * as fs from 'fs'
+import * as path from 'path'
 import { Page } from '@playwright/test'
 
 export const MOCK_USER = {
@@ -31,8 +33,6 @@ function getStorageKey(): string {
   let url = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!url) {
     try {
-      const fs = require('fs') as typeof import('fs')
-      const path = require('path') as typeof import('path')
       const envFile = fs.readFileSync(path.resolve(process.cwd(), '.env.local'), 'utf-8')
       const match = envFile.match(/^NEXT_PUBLIC_SUPABASE_URL=(.+)$/m)
       if (match) url = match[1].replace(/^["']|["']$/g, '').trim()
