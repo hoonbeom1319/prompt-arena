@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
         .order('submitted_at', { ascending: false }),
       serviceSupabase
         .from('users')
-        .select('id, nickname, is_admin')
-        .eq('is_admin', false)
+        .select('id, nickname, is_admin, is_seed')
+        .eq('is_seed', true)
         .order('nickname', { ascending: true }),
       serviceSupabase
         .from('submissions')
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
     const { data: seedUser } = await serviceSupabase
       .from('users')
-      .select('id, nickname, is_admin')
+      .select('id, nickname, is_admin, is_seed')
       .eq('id', userId)
       .single()
 
@@ -142,6 +142,10 @@ export async function POST(request: NextRequest) {
 
     if (seedUser.is_admin) {
       return NextResponse.json({ error: '운영자 계정은 시드 제출자로 쓸 수 없어요.' }, { status: 400 })
+    }
+
+    if (!seedUser.is_seed) {
+      return NextResponse.json({ error: '시드 계정으로 지정된 사용자만 시드 제출자로 쓸 수 있어요.' }, { status: 400 })
     }
 
     const { data: existingSubmission } = await serviceSupabase
