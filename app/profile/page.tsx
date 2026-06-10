@@ -41,7 +41,8 @@ export default async function ProfilePage() {
     year: 'numeric', month: '2-digit',
   }).replace('. ', '.').replace('.', '년 ').replace('.', '월').trim()
 
-  const initial = profile.nickname[0]?.toUpperCase() ?? '?'
+  const anonId = user.id.replace(/-/g, '').slice(0, 6)
+  const initial = anonId[0]?.toUpperCase() ?? '?'
   const submissionCount = submissions?.length ?? 0
   const bestRank = submissions?.reduce((best: number | null, s) => {
     if (!s.final_rank) return best
@@ -63,7 +64,7 @@ export default async function ProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[15px] font-bold text-text-primary truncate">
-              익명#{profile.nickname}
+              익명#{anonId}
             </div>
             <div className="text-xs text-text-muted mt-0.5">{joinMonth} 가입</div>
           </div>

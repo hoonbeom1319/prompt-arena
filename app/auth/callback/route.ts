@@ -37,11 +37,10 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (!existingProfile) {
+        // Google display name(user_metadata.name)은 의도적으로 제외 — 실명 노출 방지
         const nickname =
           data.user.user_metadata?.nickname ||
-          data.user.user_metadata?.name ||
-          data.user.email?.split('@')[0] ||
-          `user_${data.user.id.substring(0, 6)}`
+          `user_${data.user.id.replace(/-/g, '').substring(0, 6)}`
 
         await supabase.from('users').insert({
           id: data.user.id,
