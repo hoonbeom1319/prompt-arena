@@ -212,6 +212,55 @@ export default function HomeBody(props: HomeBodyProps) {
               </>
             )}
           </div>
+
+          {/* 참여 가이드 */}
+          <Card className="p-4">
+            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3.5">
+              어떻게 참여하나요?
+            </div>
+            <div className="flex flex-col gap-3.5">
+              {[
+                { step: '1', title: '프롬프트 작성', desc: `챌린지 주제에 맞는 AI 프롬프트를 작성해요. 최대 ${MAX_GENERATIONS}번 시도할 수 있어요.` },
+                { step: '2', title: 'AI 응답 확인', desc: 'Gemini AI가 내 프롬프트로 응답을 생성해요. 마음에 드는 걸 골라 제출하세요.' },
+                { step: '3', title: '투표 참여', desc: '제출 기간이 끝나면 다른 참가자들의 결과물에 투표할 수 있어요.' },
+                { step: '4', title: '순위 & 코인', desc: '투표로 순위가 결정되고, 순위에 따라 코인이 지급돼요.' },
+              ].map(item => (
+                <div key={item.step} className="flex gap-3">
+                  <div className="w-5 h-5 rounded-full bg-accent text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    {item.step}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary mb-0.5">{item.title}</div>
+                    <div className="text-xs text-text-secondary leading-relaxed">{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* 코인 보상 */}
+          <Card className="p-4">
+            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3">
+              코인 보상
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: '프롬프트 제출', coins: '+5' },
+                { label: '투표 1회', coins: '+1' },
+                { label: '1등', coins: '+100' },
+                { label: '2등', coins: '+50' },
+                { label: '3등', coins: '+25' },
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-base border border-border rounded-full text-[12px]"
+                >
+                  <span className="text-text-secondary">{item.label}</span>
+                  <span className="font-bold text-accent">{item.coins}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
         </>
       )}
 
