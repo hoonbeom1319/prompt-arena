@@ -168,14 +168,17 @@ export default function GeneratePage() {
 
       <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-3.5">
         {/* TopicBanner */}
-        <Card className="p-3 bg-bg-subtle">
-          <div className="flex items-center justify-between gap-2 mb-1">
+        <Card className="p-3.5 bg-bg-subtle">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
             <span className="text-xs text-text-muted whitespace-nowrap">
               주제 · {challenge?.category?.name ?? '일반'}
             </span>
             <Badge variant="outline">단독 생성형</Badge>
           </div>
-          <div className="text-sm font-bold text-text-primary">&ldquo;{challenge?.title}&rdquo;</div>
+          <div className="text-sm font-bold text-text-primary mb-1.5">&ldquo;{challenge?.title}&rdquo;</div>
+          {challenge?.instruction && (
+            <p className="text-xs text-text-secondary leading-relaxed">{challenge.instruction}</p>
+          )}
         </Card>
 
         {submittedGenId && (
@@ -184,6 +187,69 @@ export default function GeneratePage() {
           </div>
         )}
 
+        {/* 결과물 — run control 위 */}
+        {generations.length === 0 ? (
+          <Card className="p-8 text-center text-text-faint">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mx-auto" aria-hidden="true">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <p className="text-sm mt-2">실행하면 결과물이 여기에 표시돼요</p>
+          </Card>
+        ) : activeGen && (
+          <>
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[15px] font-semibold text-text-primary">
+                  결과물 · 시도 {activeGen.attempt_number}
+                </span>
+                {activeGen.id === generations[0]?.id && <Badge variant="accent">최신</Badge>}
+              </div>
+              <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
+                ✦ GEMINI 결과물
+              </div>
+              <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
+                {activeGen.result_text}
+              </p>
+            </Card>
+
+            {!submittedGenId && (
+              <div>
+                <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+                  시도 기록 — 하나 골라 제출
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  {generations.map(gen => (
+                    <button
+                      key={gen.id}
+                      type="button"
+                      onClick={() => setActiveGenId(gen.id)}
+                      className={[
+                        'shrink-0 w-[130px] text-left p-3 rounded-lg border bg-bg-card transition-colors',
+                        activeGenId === gen.id
+                          ? 'border-accent bg-accent-light'
+                          : 'border-border hover:border-border-strong',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <b className="text-xs">시도 {gen.attempt_number}</b>
+                        {activeGenId === gen.id && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
+                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="text-xs text-text-muted leading-snug h-[54px] overflow-hidden">
+                        {gen.result_text.slice(0, 46)}…
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Run control — 결과물 아래 */}
         {!submittedGenId && (
           <>
             <Card className="p-4 flex flex-col gap-2.5">
@@ -215,82 +281,21 @@ export default function GeneratePage() {
             </div>
 
             {error && <p role="alert" className="text-sm text-error">{error}</p>}
-          </>
-        )}
 
-        {generations.length === 0 ? (
-          <Card className="p-8 text-center text-text-faint">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mx-auto" aria-hidden="true">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <p className="text-sm mt-2">실행하면 결과물이 여기에 표시돼요</p>
-          </Card>
-        ) : activeGen && (
-          <>
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[15px] font-semibold text-text-primary">
-                  결과물 · 시도 {activeGen.attempt_number}
-                </span>
-                {activeGen.id === generations[0]?.id && <Badge variant="accent">최신</Badge>}
-              </div>
-              <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
-                ✦ GEMINI 결과물
-              </div>
-              <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
-                {activeGen.result_text}
-              </p>
-            </Card>
-
-            {!submittedGenId && (
-              <>
-                <div>
-                  <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
-                    시도 기록 — 하나 골라 제출
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-                    {generations.map(gen => (
-                      <button
-                        key={gen.id}
-                        type="button"
-                        onClick={() => setActiveGenId(gen.id)}
-                        className={[
-                          'shrink-0 w-[130px] text-left p-3 rounded-lg border bg-bg-card transition-colors',
-                          activeGenId === gen.id
-                            ? 'border-accent bg-accent-light'
-                            : 'border-border hover:border-border-strong',
-                        ].join(' ')}
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <b className="text-xs">시도 {gen.attempt_number}</b>
-                          {activeGenId === gen.id && (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
-                              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <div className="text-xs text-text-muted leading-snug h-[54px] overflow-hidden">
-                          {gen.result_text.slice(0, 46)}…
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => {
-                    if (activeGenId) {
-                      setSelectedGenId(activeGenId)
-                      setShowConfirm(true)
-                    }
-                  }}
-                >
-                  이 시도 제출하기
-                </Button>
-              </>
+            {generations.length > 0 && (
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  if (activeGenId) {
+                    setSelectedGenId(activeGenId)
+                    setShowConfirm(true)
+                  }
+                }}
+              >
+                이 시도 제출하기
+              </Button>
             )}
           </>
         )}
