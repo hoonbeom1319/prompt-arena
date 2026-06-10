@@ -111,6 +111,7 @@ export async function fetchHomeData(challenge: Challenge | null, userId?: string
     nextChallenge,
     countdownTarget: nextTransition?.time.toISOString() ?? null,
     countdownLabel: nextTransition ? `${nextTransition.label}까지` : null,
+    votingStartAt: challenge.voting_start_at ?? null,
   }
 }
 

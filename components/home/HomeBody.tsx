@@ -42,6 +42,7 @@ interface HomeBodyProps {
   userVotes?: number | null
   top3: TopRankEntry[]
   nextChallenge?: NextChallengePreview | null
+  votingStartAt?: string | null
 }
 
 function UserStatusCard({
@@ -149,6 +150,7 @@ export default function HomeBody(props: HomeBodyProps) {
     userVotes,
     top3,
     nextChallenge,
+    votingStartAt,
   } = props
 
   if (state === 'idle' && !countdownTarget) {
@@ -192,27 +194,50 @@ export default function HomeBody(props: HomeBodyProps) {
             userRank={userRank}
             userVotes={userVotes}
           />
-          <div className="flex flex-col gap-2.5">
-            {userSubmissionId ? (
+
+          {userSubmissionId ? (
+            /* 제출 완료 상태 */
+            <>
+              <Card className="p-6 flex flex-col items-center text-center gap-3 bg-accent-light">
+                <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[17px] font-bold text-text-primary">제출이 완료됐어요</div>
+                  {votingStartAt && (
+                    <p className="text-sm text-text-secondary mt-1">
+                      투표는 다음 단계(
+                      {new Date(votingStartAt).toLocaleDateString('ko-KR', { weekday: 'short' })}
+                      )에 열려요
+                    </p>
+                  )}
+                </div>
+              </Card>
               <Button asChild variant="secondary" size="lg" className="w-full">
                 <Link href={`/challenge/${challengeId}/generate`}>내 제출 보기</Link>
               </Button>
-            ) : (
-              <>
-                <Button asChild variant="primary" size="lg" className="w-full">
-                  <Link href={userId ? `/challenge/${challengeId}/generate` : '/auth/login'}>
-                    프롬프트 만들기
-                  </Link>
+            </>
+          ) : (
+            /* 미제출 상태 */
+            <div className="flex flex-col gap-2.5">
+              <Button asChild variant="primary" size="lg" className="w-full">
+                <Link href={userId ? `/challenge/${challengeId}/generate` : '/auth/login'}>
+                  프롬프트 만들기
+                </Link>
+              </Button>
+              {userId && (
+                <Button asChild variant="secondary" size="lg" className="w-full">
+                  <Link href={`/challenge/${challengeId}/generate`}>내 제출 보기</Link>
                 </Button>
-                {userId && (
-                  <Button asChild variant="secondary" size="lg" className="w-full">
-                    <Link href={`/challenge/${challengeId}/generate`}>내 제출 보기</Link>
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
+          {/* 참여 가이드 — 미제출 시만 */}
+          {!userSubmissionId && (
+          <>
           {/* 참여 가이드 */}
           <Card className="p-4">
             <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3.5">
@@ -261,6 +286,8 @@ export default function HomeBody(props: HomeBodyProps) {
               ))}
             </div>
           </Card>
+          </>
+          )}
         </>
       )}
 

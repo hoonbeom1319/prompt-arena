@@ -66,6 +66,7 @@ export default async function HomePage() {
             userVotes={homeData.userVotes}
             top3={homeData.top3}
             nextChallenge={homeData.nextChallenge}
+            votingStartAt={homeData.votingStartAt}
           />
         ) : (
           <HomeBody
