@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
 import Link from 'next/link'
 import { Card } from '@/ds/card'
@@ -9,7 +9,7 @@ import ResetButton from './ResetButton'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = await createServiceClient()
   const now = new Date()
 
   const [
