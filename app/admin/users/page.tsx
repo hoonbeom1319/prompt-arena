@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 import SeedToggle from './SeedToggle'
@@ -6,7 +6,7 @@ import SeedToggle from './SeedToggle'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminUsersPage() {
-  const supabase = await createClient()
+  const supabase = await createServiceClient()
 
   const { data: users } = await supabase
     .from('users')
