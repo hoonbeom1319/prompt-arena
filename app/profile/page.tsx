@@ -5,18 +5,9 @@ import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
 import RankBadge from '@/components/RankBadge'
 import { Card } from '@/ds/card'
+import LogoutButton from './LogoutButton'
 
 export const dynamic = 'force-dynamic'
-
-const GearIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75"/>
-    <path
-      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
-    />
-  </svg>
-)
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -57,18 +48,9 @@ export default async function ProfilePage() {
     return best === null ? s.final_rank : Math.min(best, s.final_rank)
   }, null)
 
-  const gearButton = (
-    <button
-      className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:bg-bg-base hover:text-text-primary transition-colors"
-      aria-label="설정"
-    >
-      <GearIcon />
-    </button>
-  )
-
   return (
     <div className="min-h-screen bg-bg-base">
-      <AppBar title="내 프로필" rightContent={gearButton} />
+      <AppBar title="내 프로필" rightContent={<LogoutButton />} />
 
       <main className="max-w-[430px] mx-auto px-4 pt-4 pb-20 flex flex-col gap-3.5">
         {/* 아바타 + 닉네임 */}
