@@ -4,23 +4,23 @@ import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center gap-2 font-medium transition-colors',
+    'inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-colors',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2',
-    'disabled:cursor-not-allowed disabled:opacity-60',
-    'rounded-lg text-sm',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    'rounded-md',
   ],
   {
     variants: {
       variant: {
-        primary:   'bg-text-primary text-white hover:bg-[#333333]',
-        accent:    'bg-accent text-white hover:bg-accent-hover',
-        secondary: 'border border-border-strong bg-transparent text-text-primary hover:bg-bg-base hover:border-text-primary',
-        ghost:     'bg-transparent text-text-secondary hover:text-text-primary hover:bg-bg-base',
+        primary:   'bg-accent text-white hover:bg-accent-hover border border-accent hover:border-accent-hover',
+        accent:    'bg-accent text-white hover:bg-accent-hover border border-accent hover:border-accent-hover',
+        secondary: 'border border-border bg-bg-card text-text-primary hover:bg-bg-subtle hover:border-border-strong',
+        ghost:     'bg-transparent border border-transparent text-text-secondary hover:bg-bg-base hover:text-text-primary',
       },
       size: {
-        sm: 'px-3 py-1.5 text-xs',
-        md: 'px-5 py-2.5',
-        lg: 'px-7 py-3 text-base',
+        sm: 'h-9 px-3.5 text-[13.5px]',
+        md: 'h-[46px] px-[18px] text-[15px]',
+        lg: 'h-12 px-6 text-base',
       },
     },
     defaultVariants: {

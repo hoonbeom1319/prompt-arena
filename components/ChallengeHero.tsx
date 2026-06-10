@@ -14,27 +14,6 @@ interface ChallengeHeroProps {
   userId?: string | null
 }
 
-const STATE_LABELS: Record<ChallengeState, string> = {
-  submission: '제출 중',
-  voting: '투표 중',
-  results: '결과 공개',
-  idle: '대기 중',
-}
-
-const STATE_DOT_COLOR: Record<ChallengeState, string> = {
-  submission: 'bg-success',
-  voting: 'bg-warning',
-  results: 'bg-accent',
-  idle: 'bg-text-muted',
-}
-
-const STATE_BADGE_VARIANT: Record<ChallengeState, 'success' | 'warning' | 'accent' | 'muted'> = {
-  submission: 'success',
-  voting: 'warning',
-  results: 'accent',
-  idle: 'muted',
-}
-
 export default function ChallengeHero({
   challenge,
   state,
@@ -90,36 +69,46 @@ export default function ChallengeHero({
   }
 
   return (
-    <div className="bg-bg-card border border-border rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-8 mb-6 bg-gradient-to-br from-white to-accent-light">
-      {/* State badge */}
-      <div className="flex items-center gap-2 mb-4">
-        <Badge variant={STATE_BADGE_VARIANT[state]} className="gap-1.5">
-          <span
-            className={[
-              'w-1.5 h-1.5 rounded-full inline-block',
-              STATE_DOT_COLOR[state],
-              state === 'submission' || state === 'voting' ? 'animate-pulse-dot' : '',
-            ].join(' ')}
-            aria-hidden="true"
-          />
-          {STATE_LABELS[state]}
-        </Badge>
-        <span className="text-[13px] text-text-muted">{participantCount}명 참여</span>
+    <div className="bg-bg-card border border-border rounded-lg shadow-[var(--shadow-sm)] p-6 mb-5">
+      {/* Phase strip */}
+      <div className="flex items-center gap-2 mb-5">
+        {(['submission', 'voting', 'results'] as const).map((ph, i) => {
+          const isDone = (state === 'voting' && ph === 'submission') ||
+                         (state === 'results' && ph !== 'results')
+          const isNow = state === ph
+          return (
+            <div key={ph} className="flex items-center gap-2">
+              {i > 0 && <span className="text-border-strong text-xs">›</span>}
+              <div className={[
+                'inline-flex items-center gap-1.5 text-xs font-semibold',
+                isNow ? 'text-accent' : isDone ? 'text-text-muted' : 'text-text-faint',
+              ].join(' ')}>
+                <span className={[
+                  'w-2 h-2 rounded-full',
+                  isNow ? 'bg-accent shadow-[0_0_0_3px_var(--accent-light)]' :
+                  isDone ? 'bg-success' : 'bg-border-strong',
+                ].join(' ')} aria-hidden="true" />
+                {{ submission: '제출', voting: '투표', results: '결과' }[ph]}
+              </div>
+            </div>
+          )
+        })}
+        <span className="ml-auto text-[13px] text-text-muted">{participantCount}명 참여</span>
       </div>
 
       {/* Title */}
-      <h1 className="text-[28px] font-bold text-text-primary mb-3 leading-tight tracking-tight">
-        {challenge.title}
+      <h1 className="text-[22px] font-extrabold text-text-primary mb-2 leading-tight tracking-tight">
+        &ldquo;{challenge.title}&rdquo;
       </h1>
 
       {/* Instruction */}
-      <p className="text-base text-text-secondary leading-relaxed mb-6 max-w-[560px]">
+      <p className="text-[13px] text-text-secondary leading-relaxed mb-5 max-w-[560px]">
         {challenge.instruction}
       </p>
 
       {/* Countdown */}
       {nextTransition && (
-        <div className="inline-flex items-center gap-4 p-4 bg-white/70 rounded-lg border border-border mb-6">
+        <div className="inline-flex items-center gap-3 px-4 py-3 bg-bg-subtle rounded-md border border-border mb-5">
           <CountdownTimer
             targetTime={nextTransition.time.toISOString()}
             label={nextTransition.label + ' 까지'}

@@ -150,38 +150,40 @@ export default async function ResultsPage({ params }: PageProps) {
         </Link>
 
         {/* Challenge header */}
-        <Card className="p-6 mb-6 bg-gradient-to-br from-white to-accent-light">
+        <Card className="p-6 mb-5">
           <Badge variant="accent" className="mb-3">결과 공개</Badge>
-          <h1 className="text-[22px] font-bold text-text-primary mb-2">{challenge.title}</h1>
+          <h1 className="text-[22px] font-extrabold text-text-primary mb-2 tracking-tight">{challenge.title}</h1>
           <p className="text-sm text-text-secondary leading-relaxed mb-4">{challenge.instruction}</p>
           <CopyLinkButton />
         </Card>
 
         {/* Winner highlight */}
         {rankedSubs.length > 0 && rankedSubs[0] && (
-          <Card className="p-6 mb-6 border-2 border-[#F59E0B] bg-gradient-to-br from-[#FFFBEB] to-white">
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="text-3xl" aria-hidden="true">🏆</span>
+          <Card className="p-6 mb-5 border-accent-mid bg-accent-light">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-full bg-accent flex items-center justify-center text-white text-lg font-extrabold shrink-0">
+                1
+              </div>
               <div>
-                <div className="text-[13px] text-text-muted font-medium">우승자</div>
-                <div className="text-lg font-bold text-text-primary">{rankedSubs[0].user_nickname}</div>
+                <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">우승</div>
+                <div className="text-base font-bold text-text-primary">{rankedSubs[0].user_nickname}</div>
               </div>
               <div className="ml-auto text-right">
-                <div className="text-2xl font-bold text-[#F59E0B]">{rankedSubs[0].final_vote_count}표</div>
+                <div className="text-xl font-extrabold text-accent">{rankedSubs[0].final_vote_count}표</div>
               </div>
             </div>
 
             <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
               우승 프롬프트
             </div>
-            <p className="text-[13px] text-text-secondary leading-relaxed px-3 py-2.5 bg-white/80 rounded-md font-mono mb-3">
+            <p className="text-[13px] text-text-secondary leading-relaxed px-3 py-2.5 bg-bg-card rounded-md font-mono mb-3 border border-border">
               {rankedSubs[0].prompt_text}
             </p>
 
             <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
               AI 응답
             </div>
-            <p className="text-[15px] text-text-primary leading-[1.7] whitespace-pre-wrap">
+            <p className="text-[14px] text-text-primary leading-[1.7] whitespace-pre-wrap px-3 py-2.5 bg-bg-card rounded-md border border-border">
               {rankedSubs[0].result_text}
             </p>
           </Card>

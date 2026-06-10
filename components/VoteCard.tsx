@@ -33,7 +33,7 @@ export default function VoteCard({
       borderRadius: 'var(--radius-md)',
       overflow: 'hidden',
       backgroundColor: 'var(--bg-card)',
-      boxShadow: hasVoted ? '0 0 0 3px rgba(217, 119, 87, 0.1)' : 'var(--shadow-sm)',
+      boxShadow: hasVoted ? '0 0 0 3px var(--accent-light)' : 'var(--shadow-sm)',
     }}>
       {/* Header */}
       {rank !== undefined && (
