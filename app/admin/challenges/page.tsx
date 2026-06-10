@@ -44,7 +44,7 @@ export default async function AdminChallengesPage() {
               const state = getChallengeState(c, now)
               const isFinalized = finalizedIds.has(c.id)
               const STATE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'accent' | 'muted'> = {
-                submission: 'success', voting: 'warning', results: 'accent', idle: 'muted',
+                submission: 'success', voting: 'accent', results: 'muted', idle: 'muted',
               }
               return (
                 <div

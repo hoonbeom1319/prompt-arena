@@ -57,7 +57,7 @@ export default async function ArchivePage() {
 
   const STATE_BADGE_VARIANT: Record<string, 'success' | 'warning' | 'accent' | 'muted'> = {
     submission: 'success',
-    voting: 'warning',
+    voting: 'accent',
     results: 'accent',
     idle: 'muted',
   }

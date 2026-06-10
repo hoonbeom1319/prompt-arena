@@ -58,7 +58,7 @@ export function getStateColor(state: ChallengeState): string {
     case 'submission':
       return 'var(--success)'
     case 'voting':
-      return 'var(--warning)'
+      return 'var(--accent)'
     case 'results':
       return 'var(--accent)'
     case 'idle':

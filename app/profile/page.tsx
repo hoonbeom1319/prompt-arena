@@ -125,7 +125,7 @@ export default async function ProfilePage() {
                       </div>
                     </div>
                     {sub.final_rank && (
-                      <div className={['text-sm font-bold', sub.final_rank <= 3 ? 'text-warning' : 'text-text-secondary'].join(' ')}>
+                      <div className={['text-sm font-bold', sub.final_rank <= 3 ? 'text-accent' : 'text-text-secondary'].join(' ')}>
                         {sub.final_rank === 1 ? '🥇' : sub.final_rank === 2 ? '🥈' : sub.final_rank === 3 ? '🥉' : `${sub.final_rank}위`}
                       </div>
                     )}

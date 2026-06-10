@@ -157,7 +157,7 @@ export default async function AdminDashboard() {
                 const state = getChallengeState(c as Parameters<typeof getChallengeState>[0], now)
                 const counts = challengeStats[c.id] ?? { submissions: 0, seeds: 0 }
                 const STATE_VARIANT: Record<string, 'accent' | 'success' | 'warning' | 'muted' | 'outline'> = {
-                  submission: 'accent', voting: 'warning', results: 'outline', idle: 'muted',
+                  submission: 'success', voting: 'accent', results: 'outline', idle: 'muted',
                 }
                 return (
                   <tr key={c.id} className="border-b border-border last:border-0">
