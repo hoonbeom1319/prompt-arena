@@ -1,14 +1,22 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
-import CoinDisplay from '@/components/CoinDisplay'
-import BadgeList from '@/components/BadgeList'
-import Link from 'next/link'
+import RankBadge from '@/components/RankBadge'
 import { Card } from '@/ds/card'
-import { Badge } from '@/ds/badge'
 
 export const dynamic = 'force-dynamic'
+
+const GearIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75"/>
+    <path
+      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+    />
+  </svg>
+)
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -24,144 +32,146 @@ export default async function ProfilePage() {
 
   if (!profile) redirect('/auth/login')
 
-  const { data: userBadges } = await supabase
-    .from('user_badges')
-    .select(`badge_id, earned_at, badges(id, name, description, icon)`)
-    .eq('user_id', user.id)
-    .order('earned_at', { ascending: false })
-
-  const badges = userBadges?.map(ub => {
-    const badge = Array.isArray(ub.badges) ? ub.badges[0] : ub.badges
-    return badge
-  }).filter(Boolean) ?? []
-
   const { data: transactions } = await supabase
     .from('coin_transactions')
-    .select('id, amount, reason, created_at, challenge_id')
+    .select('id, amount, reason, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(20)
+    .limit(5)
 
   const { data: submissions } = await supabase
     .from('submissions')
     .select(`id, submitted_at, final_rank, final_vote_count, challenge_id, challenges(title)`)
     .eq('user_id', user.id)
     .order('submitted_at', { ascending: false })
-    .limit(10)
+    .limit(5)
 
-  const joinDate = new Date(profile.created_at).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric',
-  })
+  const joinMonth = new Date(profile.created_at).toLocaleDateString('ko-KR', {
+    year: 'numeric', month: '2-digit',
+  }).replace('. ', '.').replace('.', '년 ').replace('.', '월').trim()
+
+  const initial = profile.nickname[0]?.toUpperCase() ?? '?'
+  const submissionCount = submissions?.length ?? 0
+  const bestRank = submissions?.reduce((best: number | null, s) => {
+    if (!s.final_rank) return best
+    return best === null ? s.final_rank : Math.min(best, s.final_rank)
+  }, null)
+
+  const gearButton = (
+    <button
+      className="w-8 h-8 flex items-center justify-center rounded-md text-text-muted hover:bg-bg-base hover:text-text-primary transition-colors"
+      aria-label="설정"
+    >
+      <GearIcon />
+    </button>
+  )
 
   return (
     <div className="min-h-screen bg-bg-base">
-      <AppBar title="내 프로필" />
+      <AppBar title="내 프로필" rightContent={gearButton} />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-6 pb-20">
-        {/* Profile header */}
-        <Card className="p-7 mb-6">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-[60px] h-[60px] rounded-full bg-accent-light flex items-center justify-center text-2xl font-bold text-accent border-2 border-accent"
-                aria-hidden="true"
-              >
-                {profile.nickname[0]?.toUpperCase()}
-              </div>
-              <div>
-                <h1 className="text-[22px] font-bold text-text-primary mb-1">{profile.nickname}</h1>
-                <p className="text-[13px] text-text-muted">{joinDate}에 가입</p>
-                {profile.is_admin && (
-                  <Badge variant="accent" className="mt-1.5 text-[11px]">관리자</Badge>
-                )}
-              </div>
+      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-20 flex flex-col gap-3.5">
+        {/* 아바타 + 닉네임 */}
+        <Card className="p-4 flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-full bg-accent-light border border-accent-mid flex items-center justify-center text-base font-bold text-accent shrink-0"
+            aria-hidden="true"
+          >
+            {initial}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-bold text-text-primary truncate">
+              익명#{profile.nickname}
             </div>
-            <CoinDisplay balance={profile.coin_balance} size="lg" />
+            <div className="text-xs text-text-muted mt-0.5">{joinMonth} 가입</div>
           </div>
         </Card>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { label: '제출', value: submissions?.length ?? 0, icon: '✍️' },
-            { label: '뱃지', value: badges.length, icon: '🏅' },
-            { label: '획득 코인', value: transactions?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) ?? 0, icon: '🪙' },
-          ].map(stat => (
-            <Card key={stat.label} className="p-4 text-center">
-              <div className="text-2xl mb-1" aria-hidden="true">{stat.icon}</div>
-              <div className="text-[22px] font-bold text-text-primary">{stat.value}</div>
-              <div className="text-xs text-text-muted mt-0.5">{stat.label}</div>
-            </Card>
-          ))}
+        {/* 통계 3칸 */}
+        <div className="grid grid-cols-3 gap-2.5">
+          <Card className="p-3 text-center">
+            <div className="text-[22px] font-extrabold text-accent tabular-nums leading-tight">
+              {profile.coin_balance.toLocaleString()}
+            </div>
+            <div className="text-[11.5px] text-text-muted mt-0.5">코인</div>
+          </Card>
+          <Card className="p-3 text-center">
+            <div className="text-[22px] font-extrabold text-text-primary tabular-nums leading-tight">
+              {bestRank ?? '—'}
+            </div>
+            <div className="text-[11.5px] text-text-muted mt-0.5">최고 순위</div>
+          </Card>
+          <Card className="p-3 text-center">
+            <div className="text-[22px] font-extrabold text-text-primary tabular-nums leading-tight">
+              #{submissionCount}
+            </div>
+            <div className="text-[11.5px] text-text-muted mt-0.5">응모</div>
+          </Card>
         </div>
 
-        {/* Badges */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-base font-bold text-text-primary mb-4">뱃지</h2>
-          <BadgeList badges={badges as Array<{ id: string; name: string; description: string; icon: string }>} />
-        </Card>
-
-        {/* Submission history */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-base font-bold text-text-primary mb-4">참여 기록</h2>
+        {/* 지난 챌린지 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">지난 챌린지</span>
+            <Link href="/archive" className="text-xs text-accent no-underline">전체 보기 &rsaquo;</Link>
+          </div>
           {!submissions || submissions.length === 0 ? (
-            <p className="text-sm text-text-muted text-center py-6">아직 참여한 챌린지가 없어요</p>
+            <Card className="p-4 text-center">
+              <p className="text-sm text-text-muted">아직 참여한 챌린지가 없어요</p>
+            </Card>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               {submissions.map(sub => {
                 const challenge = Array.isArray(sub.challenges) ? sub.challenges[0] : sub.challenges
                 return (
                   <Link
                     key={sub.id}
                     href={`/challenge/${sub.challenge_id}/results`}
-                    className="flex items-center justify-between px-3.5 py-3 bg-bg-base rounded-lg border border-border no-underline hover:border-border-strong transition-colors"
+                    className="flex items-center justify-between px-3.5 py-2.5 bg-bg-card border border-border rounded-md no-underline hover:border-border-strong transition-colors"
                   >
-                    <div>
-                      <div className="text-sm font-medium text-text-primary mb-0.5">
-                        {(challenge as { title: string } | null)?.title ?? '챌린지'}
-                      </div>
-                      <div className="text-xs text-text-muted">
-                        {new Date(sub.submitted_at).toLocaleDateString('ko-KR')}
-                      </div>
-                    </div>
-                    {sub.final_rank && (
-                      <div className={['text-sm font-bold', sub.final_rank <= 3 ? 'text-accent' : 'text-text-secondary'].join(' ')}>
-                        {sub.final_rank === 1 ? '🥇' : sub.final_rank === 2 ? '🥈' : sub.final_rank === 3 ? '🥉' : `${sub.final_rank}위`}
-                      </div>
-                    )}
+                    <span className="text-sm text-text-primary truncate">
+                      {(challenge as { title: string } | null)?.title ?? '챌린지'}
+                    </span>
+                    <span className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {sub.final_rank ? (
+                        <>
+                          <RankBadge rank={sub.final_rank} />
+                          <span className="text-xs text-text-muted tabular-nums">{sub.final_vote_count ?? 0}표</span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-text-faint">집계 전</span>
+                      )}
+                    </span>
                   </Link>
                 )
               })}
             </div>
           )}
-        </Card>
+        </div>
 
-        {/* Coin history */}
-        <Card className="p-6">
-          <h2 className="text-base font-bold text-text-primary mb-4">코인 내역</h2>
+        {/* 코인 획득 내역 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">코인 획득 내역</span>
+            <span className="text-xs text-accent">전체 내역 &rsaquo;</span>
+          </div>
           {!transactions || transactions.length === 0 ? (
-            <p className="text-sm text-text-muted text-center py-6">코인 내역이 없어요</p>
+            <Card className="p-4 text-center">
+              <p className="text-sm text-text-muted">코인 내역이 없어요</p>
+            </Card>
           ) : (
-            <div className="flex flex-col gap-1.5">
+            <Card className="divide-y divide-border">
               {transactions.map(tx => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between px-3.5 py-2.5 bg-bg-base rounded-lg border border-border"
-                >
-                  <div>
-                    <div className="text-sm font-medium text-text-primary">{tx.reason}</div>
-                    <div className="text-xs text-text-muted mt-0.5">
-                      {new Date(tx.created_at).toLocaleDateString('ko-KR')}
-                    </div>
-                  </div>
-                  <span className={['text-[15px] font-bold', tx.amount > 0 ? 'text-success' : 'text-error'].join(' ')}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount} 🪙
+                <div key={tx.id} className="flex items-center justify-between px-3.5 py-2.5">
+                  <span className="text-sm text-text-primary">{tx.reason}</span>
+                  <span className={['text-sm font-semibold tabular-nums', tx.amount > 0 ? 'text-success' : 'text-error'].join(' ')}>
+                    {tx.amount > 0 ? '+' : ''}{tx.amount}
                   </span>
                 </div>
               ))}
-            </div>
+            </Card>
           )}
-        </Card>
+        </div>
       </main>
 
       <TabBar />

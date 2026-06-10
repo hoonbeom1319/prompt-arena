@@ -11,9 +11,10 @@ interface AppBarProps {
   backHref?: string
   statusLabel?: string
   statusVariant?: VariantProps<typeof badgeVariants>['variant']
+  rightContent?: React.ReactNode
 }
 
-export default function AppBar({ title, showBack, backHref, statusLabel, statusVariant = 'muted' }: AppBarProps) {
+export default function AppBar({ title, showBack, backHref, statusLabel, statusVariant = 'muted', rightContent }: AppBarProps) {
   const router = useRouter()
 
   const handleBack = () => {
@@ -41,9 +42,9 @@ export default function AppBar({ title, showBack, backHref, statusLabel, statusV
         <h1 className="text-base font-bold text-text-primary text-center truncate">{title}</h1>
 
         <div className="flex items-center justify-end">
-          {statusLabel && (
+          {rightContent ?? (statusLabel && (
             <Badge variant={statusVariant}>{statusLabel}</Badge>
-          )}
+          ))}
         </div>
       </div>
     </header>

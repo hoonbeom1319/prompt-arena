@@ -52,13 +52,15 @@ metadata:
 #### 남은 항목
 
 **로그인 페이지** (`app/auth/login/`)
-- 카카오 버튼: `#FEE500` 배경, `#181600` 글자
-- 네이버 버튼: `#03C75A` 배경, 흰 글자
-- 현재 구글 소셜 + 이메일 폼이 있는 구조 → 디자인 문서 레이아웃에 맞춰 스타일
+- 소셜: 구글만 (카카오/네이버 미구현으로 확정)
+- 현재 구글 소셜 + 이메일 폼이 있는 구조 → 디자인 문서 레이아웃에 맞춰 스타일 정도만
 
-**프로필 페이지** (`app/profile/page.tsx`)
-- 현재 구 레이아웃(`container` 클래스, 통계그리드 등) 그대로
-- 디자인: 익명#me7 아바타 + 코인/순위/응모 stat 3열 + 지난 챌린지 목록 compact + 코인 내역 compact
+**프로필 페이지** (`app/profile/page.tsx`) ✅ 완료
+- 아바타(sky border, 이니셜) + 닉네임 + 가입일
+- 3열 stat: 코인(sky 숫자) · 최고순위 · 응모 수
+- 지난 챌린지 목록 (compact row, RankBadge + 표 수)
+- 코인 획득 내역 목록 (compact row, ±금액 색상)
+- AppBar gear 아이콘(rightContent), TabBar
 
 **관리자 챌린지 출제** (`app/admin/challenges/new/page.tsx`)
 - 현재 폼 구조는 있음
