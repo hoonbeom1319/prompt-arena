@@ -56,13 +56,13 @@ export function getStateLabel(state: ChallengeState): string {
 export function getStateColor(state: ChallengeState): string {
   switch (state) {
     case 'submission':
-      return '#10B981'
+      return 'var(--success)'
     case 'voting':
-      return '#F59E0B'
+      return 'var(--warning)'
     case 'results':
-      return '#D97757'
+      return 'var(--accent)'
     case 'idle':
-      return '#6B7280'
+      return 'var(--text-muted)'
   }
 }
 

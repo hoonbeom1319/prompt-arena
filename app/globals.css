@@ -37,66 +37,57 @@
   src: url("/fonts/Pretendard-ExtraBold.woff2") format("woff2");
 }
 
+/*
+ * Tailwind v4 @theme — accent 색은 oklch 리터럴로 직접 지정.
+ * var(--accent) 체인을 쓰면 @layer theme가 기본값(#0084cc 등)으로 덮어써서
+ * 디자인 핸드오프 sky 토큰이 반영되지 않을 수 있음.
+ */
+@theme inline {
+  --color-bg-base:       oklch(96.8% 0.007 247.896);
+  --color-bg-subtle:     oklch(98.4% 0.003 247.858);
+  --color-bg-card:       #ffffff;
+  --color-text-primary:  oklch(20.8% 0.042 265.755);
+  --color-text-secondary: oklch(44.6% 0.043 257.281);
+  --color-text-muted:    oklch(55.4% 0.046 257.417);
+  --color-text-faint:    oklch(70.4% 0.04  256.788);
+  --color-accent:        oklch(58.8% 0.158 241.966);
+  --color-accent-hover:  oklch(50%   0.134 242.749);
+  --color-accent-light:  oklch(97.7% 0.013 236.62);
+  --color-accent-mid:    oklch(82.8% 0.111 230.318);
+  --color-border:        oklch(92.9% 0.013 255.508);
+  --color-border-strong: oklch(86.9% 0.022 252.894);
+  --color-success:       oklch(69.6% 0.17  162.48);
+  --color-warning:       oklch(76.9% 0.188  70.08);
+  --color-error:         oklch(64.5% 0.246  16.439);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* 인라인 style(var(--accent)) 호환용 — @theme와 동일 값 */
 :root {
-  /* ---- Surfaces ---- */
-  --bg-base:   oklch(96.8% 0.007 247.896);  /* slate-100 */
-  --bg-subtle: oklch(98.4% 0.003 247.858);  /* slate-50 */
+  --bg-base:   oklch(96.8% 0.007 247.896);
+  --bg-subtle: oklch(98.4% 0.003 247.858);
   --bg-card:   #ffffff;
-
-  /* ---- Text ---- */
-  --text-primary:   oklch(20.8% 0.042 265.755);  /* slate-900 */
-  --text-secondary: oklch(44.6% 0.043 257.281);  /* slate-600 */
-  --text-muted:     oklch(55.4% 0.046 257.417);  /* slate-500 */
-  --text-faint:     oklch(70.4% 0.04  256.788);  /* slate-400 */
-
-  /* ---- Sky accent ---- */
-  --accent:       oklch(58.8% 0.158 241.966);  /* sky-600 */
-  --accent-hover: oklch(50%   0.134 242.749);  /* sky-700 */
-  --accent-light: oklch(97.7% 0.013 236.62);   /* sky-50 */
-  --accent-mid:   oklch(82.8% 0.111 230.318);  /* sky-300 */
-
-  /* ---- Borders ---- */
-  --border:        oklch(92.9% 0.013 255.508);  /* slate-200 */
-  --border-strong: oklch(86.9% 0.022 252.894);  /* slate-300 */
-
-  /* ---- Status ---- */
-  --success: oklch(69.6% 0.17  162.48);   /* emerald-500 */
-  --warning: oklch(76.9% 0.188  70.08);   /* amber-500 */
-  --error:   oklch(64.5% 0.246  16.439);  /* rose-500 */
-
-  /* ---- Radius ---- */
+  --text-primary:   oklch(20.8% 0.042 265.755);
+  --text-secondary: oklch(44.6% 0.043 257.281);
+  --text-muted:     oklch(55.4% 0.046 257.417);
+  --text-faint:     oklch(70.4% 0.04  256.788);
+  --accent:       oklch(58.8% 0.158 241.966);
+  --accent-hover: oklch(50%   0.134 242.749);
+  --accent-light: oklch(97.7% 0.013 236.62);
+  --accent-mid:   oklch(82.8% 0.111 230.318);
+  --border:        oklch(92.9% 0.013 255.508);
+  --border-strong: oklch(86.9% 0.022 252.894);
+  --success: oklch(69.6% 0.17  162.48);
+  --warning: oklch(76.9% 0.188  70.08);
+  --error:   oklch(64.5% 0.246  16.439);
   --radius-sm:   6px;
   --radius-md:   8px;
   --radius-lg:   12px;
   --radius-full: 9999px;
-
-  /* ---- Shadows (flat, black-tone only) ---- */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-
-  /* ---- Transition ---- */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@theme inline {
-  --color-bg-base:       var(--bg-base);
-  --color-bg-subtle:     var(--bg-subtle);
-  --color-bg-card:       var(--bg-card);
-  --color-text-primary:  var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted:    var(--text-muted);
-  --color-text-faint:    var(--text-faint);
-  --color-accent:        var(--accent);
-  --color-accent-hover:  var(--accent-hover);
-  --color-accent-light:  var(--accent-light);
-  --color-accent-mid:    var(--accent-mid);
-  --color-border:        var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-success:       var(--success);
-  --color-warning:       var(--warning);
-  --color-error:         var(--error);
-  --shadow-card: var(--shadow-sm);
-  --shadow-elevated: var(--shadow-md);
 }
 
 *, *::before, *::after {
@@ -120,7 +111,6 @@ body {
   line-height: 1.5;
 }
 
-/* Container */
 .container {
   width: 100%;
   max-width: 768px;
@@ -128,7 +118,6 @@ body {
   padding: 0 16px;
 }
 
-/* Animations */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
@@ -143,7 +132,6 @@ body {
   to   { transform: translateY(0) }
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

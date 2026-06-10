@@ -96,14 +96,14 @@ export default function NewChallengePage() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-bold text-text-primary mb-6">새 챌린지 만들기</h1>
+      <h1 className="text-[22px] font-bold text-text-primary mb-5">챌린지 출제</h1>
 
       {activeConflict && (
-        <div role="alert" className="px-4 py-3.5 bg-[#FFFBEB] border border-[#FCD34D] rounded-lg mb-6">
-          <p className="text-sm font-semibold text-[#92400E] mb-0.5">
+        <div role="alert" className="px-4 py-3.5 bg-[color-mix(in_oklab,var(--warning)_12%,white)] border border-[color-mix(in_oklab,var(--warning)_32%,white)] rounded-lg mb-5">
+          <p className="text-sm font-semibold text-text-primary mb-0.5">
             진행 중인 챌린지가 있어요
           </p>
-          <p className="text-sm text-[#92400E]">
+          <p className="text-sm text-text-secondary">
             &lsquo;{activeConflict.title}&rsquo;이 현재{' '}
             <strong>{activeConflict.state === 'submission' ? '제출' : '투표'} 중</strong>입니다.
             지금 새 챌린지를 만들면 홈 화면이 새 챌린지로 덮어씌워져요.
@@ -111,30 +111,46 @@ export default function NewChallengePage() {
         </div>
       )}
 
-      {/* AI Draft */}
-      <Card className="p-5 mb-6 bg-accent-light border-accent/30">
-        <h2 className="text-sm font-bold text-accent mb-3">AI로 챌린지 초안 생성</h2>
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            value={aiTopic}
-            onChange={e => setAiTopic(e.target.value)}
-            placeholder="주제를 입력하세요 (예: 여행 계획짜기, 시 쓰기)"
-            aria-label="AI 챌린지 초안 주제"
-          />
-          <Button
-            type="button"
-            variant="accent"
-            onClick={handleAiDraft}
-            disabled={aiLoading || !aiTopic.trim()}
-            className="shrink-0"
-          >
-            {aiLoading ? '생성 중...' : 'AI 생성'}
-          </Button>
-        </div>
-      </Card>
+      <div className="grid grid-cols-2 gap-5 items-start">
+        {/* AI 초안 채팅 (좌) */}
+        <Card className="p-4">
+          <div className="flex items-center gap-2 text-text-primary font-semibold text-[15px] mb-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            AI 주제 초안 (챗봇)
+          </div>
+          <div className="flex flex-col gap-2.5 mb-4">
+            <div className="self-start max-w-[90%] p-3 bg-bg-subtle border border-border rounded-lg rounded-tl-sm text-xs text-text-secondary">
+              어떤 카테고리의 주제를 만들까요? 채점 가능한 형태로 제안드릴게요.
+            </div>
+            {aiTopic && (
+              <div className="self-end max-w-[85%] p-3 bg-accent-light border border-accent-mid rounded-lg rounded-tr-sm text-xs text-text-primary">
+                {aiTopic}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              value={aiTopic}
+              onChange={e => setAiTopic(e.target.value)}
+              placeholder="예: 글쓰기 카테고리, 채점 가능한 주제 3개"
+              aria-label="AI 챌린지 초안 주제"
+            />
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleAiDraft}
+              disabled={aiLoading || !aiTopic.trim()}
+              className="shrink-0"
+            >
+              {aiLoading ? '생성 중...' : '초안 생성'}
+            </Button>
+          </div>
+        </Card>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Card className="p-6 mb-4">
           <h2 className="text-base font-bold mb-5">기본 정보</h2>
           <div className="flex flex-col gap-4">
@@ -263,11 +279,12 @@ export default function NewChallengePage() {
           >
             취소
           </Button>
-          <Button type="submit" variant="accent" disabled={loading}>
-            {loading ? '생성 중...' : '챌린지 만들기'}
+          <Button type="submit" variant="primary" disabled={loading}>
+            {loading ? '생성 중...' : '챌린지 확정'}
           </Button>
         </div>
       </form>
+      </div>
     </div>
   )
 }

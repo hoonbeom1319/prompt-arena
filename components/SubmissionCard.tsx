@@ -1,3 +1,8 @@
+import { Badge } from '@/ds/badge'
+import { Button } from '@/ds/button'
+import { Card } from '@/ds/card'
+import { cn } from '@/lib/utils'
+
 interface SubmissionCardProps {
   attemptNumber: number
   promptText: string
@@ -16,97 +21,47 @@ export default function SubmissionCard({
   isSubmitted,
 }: SubmissionCardProps) {
   return (
-    <div style={{
-      border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-      borderRadius: 'var(--radius-md)',
-      overflow: 'hidden',
-      backgroundColor: 'var(--bg-card)',
-      boxShadow: isSelected ? '0 0 0 3px rgba(217, 119, 87, 0.15)' : 'var(--shadow-sm)',
-    }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '12px 16px',
-        borderBottom: '1px solid var(--border)',
-        backgroundColor: 'var(--bg-base)',
-      }}>
-        <span style={{
-          fontSize: '13px',
-          fontWeight: '600',
-          color: 'var(--text-secondary)',
-        }}>
+    <Card
+      className={cn(
+        'overflow-hidden',
+        isSelected && 'border-accent shadow-[0_0_0_3px_var(--accent-light)]',
+      )}
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg-subtle">
+        <span className="text-[13px] font-semibold text-text-secondary">
           시도 #{attemptNumber}
         </span>
-        {isSubmitted && (
-          <span className="badge badge-success" style={{ fontSize: '11px' }}>
-            제출됨
-          </span>
-        )}
-        {isSelected && !isSubmitted && (
-          <span className="badge badge-accent" style={{ fontSize: '11px' }}>
-            선택됨
-          </span>
-        )}
+        {isSubmitted && <Badge variant="success" className="text-[11px]">제출됨</Badge>}
+        {isSelected && !isSubmitted && <Badge variant="accent" className="text-[11px]">선택됨</Badge>}
       </div>
 
-      {/* Prompt */}
-      <div style={{ padding: '16px' }}>
-        <div style={{
-          fontSize: '12px',
-          fontWeight: '600',
-          color: 'var(--text-muted)',
-          marginBottom: '6px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}>
+      <div className="p-4">
+        <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5">
           내 프롬프트
         </div>
-        <p style={{
-          fontSize: '14px',
-          color: 'var(--text-secondary)',
-          lineHeight: '1.6',
-          marginBottom: '16px',
-          padding: '10px',
-          backgroundColor: 'var(--bg-base)',
-          borderRadius: '6px',
-          fontFamily: 'monospace',
-        }}>
+        <p className="text-sm text-text-secondary leading-relaxed mb-4 p-2.5 bg-bg-subtle rounded-md font-mono">
           {promptText}
         </p>
 
-        <div style={{
-          fontSize: '12px',
-          fontWeight: '600',
-          color: 'var(--text-muted)',
-          marginBottom: '6px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}>
+        <div className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5">
           AI 응답
         </div>
-        <p style={{
-          fontSize: '14px',
-          color: 'var(--text-primary)',
-          lineHeight: '1.7',
-          whiteSpace: 'pre-wrap',
-        }}>
+        <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">
           {resultText}
         </p>
 
         {onSelect && !isSubmitted && (
-          <div style={{ marginTop: '16px' }}>
-            <button
+          <div className="mt-4">
+            <Button
+              variant={isSelected ? 'secondary' : 'primary'}
+              className="w-full"
               onClick={onSelect}
-              className={isSelected ? 'btn-secondary' : 'btn-accent'}
-              style={{ fontSize: '14px', width: '100%', justifyContent: 'center' }}
             >
               {isSelected ? '다른 것 선택하기' : '이 결과로 제출하기'}
-            </button>
+            </Button>
           </div>
         )}
       </div>
-    </div>
+    </Card>
   )
 }

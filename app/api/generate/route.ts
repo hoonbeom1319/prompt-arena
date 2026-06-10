@@ -3,7 +3,9 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { generateWithPrompt } from '@/lib/gemini'
 import { getChallengeState } from '@/lib/challenge-state'
 
-const MAX_ATTEMPTS = 3
+import { MAX_GENERATIONS } from '@/lib/constants'
+
+const MAX_ATTEMPTS = MAX_GENERATIONS
 
 export async function POST(request: NextRequest) {
   try {

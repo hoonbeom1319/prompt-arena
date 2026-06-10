@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import { cn } from '@/lib/utils'
 
 interface CountdownTimerProps {
   targetTime: string
   label: string
+  size?: 'md' | 'lg'
   onExpired?: () => void
 }
 
@@ -20,7 +22,7 @@ function useIsHydrated() {
   )
 }
 
-export default function CountdownTimer({ targetTime, label, onExpired }: CountdownTimerProps) {
+export default function CountdownTimer({ targetTime, label, size = 'md', onExpired }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const hydrated = useIsHydrated()
 
@@ -49,55 +51,30 @@ export default function CountdownTimer({ targetTime, label, onExpired }: Countdo
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
-
   const isUrgent = totalSeconds < 3600
+  const display = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '4px',
-    }}>
-      <span style={{
-        fontSize: '12px',
-        color: 'var(--text-secondary)',
-        fontWeight: '500',
-      }}>
-        {label}
-      </span>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        fontVariantNumeric: 'tabular-nums',
-      }}>
-        <TimeUnit value={pad(hours)} />
-        <span style={{ color: isUrgent ? 'var(--error)' : 'var(--text-primary)', fontWeight: '700', fontSize: '20px' }}>:</span>
-        <TimeUnit value={pad(minutes)} urgent={isUrgent} />
-        <span style={{ color: isUrgent ? 'var(--error)' : 'var(--text-primary)', fontWeight: '700', fontSize: '20px' }}>:</span>
-        <TimeUnit value={pad(seconds)} urgent={isUrgent} />
+  if (size === 'lg') {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+          {label}
+        </span>
+        <div className={cn(
+          'font-extrabold tabular-nums tracking-tight leading-none',
+          isUrgent ? 'text-error' : 'text-text-primary',
+          'text-[38px]',
+        )}>
+          {display}
+          <span className="text-base font-semibold text-text-muted ml-2">남음</span>
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
-function TimeUnit({ value, urgent }: { value: string; urgent?: boolean }) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-    }}>
-      <span style={{
-        fontSize: '24px',
-        fontWeight: '700',
-        color: urgent ? 'var(--error)' : 'var(--text-primary)',
-        lineHeight: 1,
-        letterSpacing: '-0.02em',
-      }}>
-        {value}
-      </span>
-    </div>
+    <span className={cn('tabular-nums font-semibold', isUrgent ? 'text-error' : 'text-text-secondary')}>
+      {display}
+    </span>
   )
 }

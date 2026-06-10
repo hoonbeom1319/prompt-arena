@@ -22,7 +22,7 @@ export default function CoinDisplay({ balance, size = 'md' }: CoinDisplayProps) 
       padding: s.padding,
       backgroundColor: 'var(--accent-light)',
       borderRadius: 'var(--radius-full)',
-      border: '1px solid rgba(217, 119, 87, 0.2)',
+      border: '1px solid color-mix(in oklab, var(--accent) 32%, white)',
     }}>
       <span style={{ fontSize: s.icon }}>🪙</span>
       <span style={{

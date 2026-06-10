@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Header from '@/components/Header'
-import SubmissionCard from '@/components/SubmissionCard'
+import AppBar from '@/components/AppBar'
+import GenPips from '@/components/GenPips'
 import { createClient } from '@/lib/supabase/client'
+import { MAX_GENERATIONS } from '@/lib/constants'
 import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
 import { Card } from '@/ds/card'
@@ -22,9 +22,8 @@ interface Challenge {
   id: string
   title: string
   instruction: string
+  category?: { name: string } | null
 }
-
-const MAX_ATTEMPTS = 3
 
 export default function GeneratePage() {
   const params = useParams()
@@ -42,6 +41,7 @@ export default function GeneratePage() {
   const [submittedGenId, setSubmittedGenId] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
+  const [activeGenId, setActiveGenId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -53,7 +53,7 @@ export default function GeneratePage() {
 
       const { data: ch } = await supabase
         .from('challenges')
-        .select('id, title, instruction')
+        .select('id, title, instruction, category_id')
         .eq('id', id)
         .single()
 
@@ -75,8 +75,17 @@ export default function GeneratePage() {
         .single()
 
       if (cancelled) return
-      setChallenge(ch)
-      if (gens) setGenerations(gens)
+
+      let category: { name: string } | null = null
+      if (ch.category_id) {
+        const { data: cat } = await supabase.from('categories').select('name').eq('id', ch.category_id).single()
+        if (cat) category = cat
+      }
+      setChallenge({ id: ch.id, title: ch.title, instruction: ch.instruction, category })
+      if (gens) {
+        setGenerations(gens)
+        setActiveGenId(gens[0]?.id ?? null)
+      }
       if (submission) setSubmittedGenId(submission.generation_id)
       setPageLoading(false)
     }
@@ -88,8 +97,8 @@ export default function GeneratePage() {
 
   const handleGenerate = async () => {
     if (!promptText.trim()) return
-    if (generations.length >= MAX_ATTEMPTS) {
-      setError(`최대 ${MAX_ATTEMPTS}번까지만 시도할 수 있어요.`)
+    if (generations.length >= MAX_GENERATIONS) {
+      setError(`최대 ${MAX_GENERATIONS}번까지만 시도할 수 있어요.`)
       return
     }
 
@@ -108,6 +117,7 @@ export default function GeneratePage() {
       setError(data.error || '생성에 실패했어요. 다시 시도해주세요.')
     } else {
       setGenerations(prev => [data.generation, ...prev])
+      setActiveGenId(data.generation.id)
       setPromptText('')
     }
 
@@ -141,7 +151,7 @@ export default function GeneratePage() {
   if (pageLoading) {
     return (
       <div className="min-h-screen bg-bg-base">
-        <Header />
+        <AppBar title="프롬프트 만들기" showBack backHref="/" statusLabel="제출 기간" statusVariant="accent" />
         <div className="flex justify-center items-center min-h-[300px]" role="status" aria-label="불러오는 중">
           <div className="w-8 h-8 border-[3px] border-border border-t-accent rounded-full animate-spin" />
         </div>
@@ -149,135 +159,164 @@ export default function GeneratePage() {
     )
   }
 
-  const attemptsLeft = MAX_ATTEMPTS - generations.length
+  const locked = generations.length >= MAX_GENERATIONS
+  const activeGen = generations.find(g => g.id === activeGenId) ?? generations[0]
 
   return (
     <div className="min-h-screen bg-bg-base">
-      <Header />
+      <AppBar title="프롬프트 만들기" showBack backHref="/" statusLabel="제출 기간" statusVariant="accent" />
 
-      <main className="container pt-8 pb-16">
-        <Link
-          href="/"
-          className="text-sm text-text-secondary no-underline inline-flex items-center gap-1 mb-5 hover:text-text-primary transition-colors"
-        >
-          ← 홈으로
-        </Link>
-
-        {/* Challenge info */}
-        <Card className="p-5 mb-6">
-          <Badge variant="success" className="mb-2.5">제출 기간</Badge>
-          <h1 className="text-xl font-bold text-text-primary mb-2">{challenge?.title}</h1>
-          <p className="text-sm text-text-secondary leading-relaxed">{challenge?.instruction}</p>
+      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-3.5">
+        {/* TopicBanner */}
+        <Card className="p-3 bg-bg-subtle">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-xs text-text-muted whitespace-nowrap">
+              주제 · {challenge?.category?.name ?? '일반'}
+            </span>
+            <Badge variant="outline">단독 생성형</Badge>
+          </div>
+          <div className="text-sm font-bold text-text-primary">&ldquo;{challenge?.title}&rdquo;</div>
         </Card>
 
-        {/* Already submitted */}
         {submittedGenId && (
-          <div
-            role="status"
-            className="px-4 py-3.5 bg-[#ECFDF5] border border-[#A7F3D0] rounded-lg mb-6 text-success text-sm font-medium"
-          >
+          <div role="status" className="px-4 py-3 bg-[color-mix(in_oklab,var(--success)_12%,white)] border border-[color-mix(in_oklab,var(--success)_32%,white)] rounded-lg text-success text-sm font-medium">
             제출 완료! 이미 이 챌린지에 프롬프트를 제출했어요.
           </div>
         )}
 
-        {/* Generate form */}
         {!submittedGenId && (
-          <Card className="p-6 mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-text-primary">프롬프트 작성</h2>
-              <span className={['text-[13px] font-medium', attemptsLeft > 0 ? 'text-text-secondary' : 'text-error'].join(' ')}>
-                남은 시도: {attemptsLeft} / {MAX_ATTEMPTS}
+          <>
+            <Card className="p-4 flex flex-col gap-2.5">
+              <Textarea
+                value={promptText}
+                onChange={e => setPromptText(e.target.value)}
+                placeholder={locked ? '5회를 모두 사용해 생성이 잠겼어요' : '프롬프트를 입력하세요…'}
+                disabled={loading || locked}
+                rows={4}
+                aria-label="프롬프트 입력"
+                className="min-h-[90px]"
+              />
+              <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={loading || !promptText.trim() || locked}
+                className="w-full"
+              >
+                {locked ? '생성 잠금 (5/5)' : loading ? '실행 중...' : '⚡ 실행 (Gemini)'}
+              </Button>
+            </Card>
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-muted">남은 생성 횟수</span>
+              <span className="flex items-center gap-2">
+                <GenPips used={generations.length} />
+                <b className="text-xs tabular-nums">{generations.length}/{MAX_GENERATIONS}</b>
               </span>
             </div>
 
-            <Textarea
-              value={promptText}
-              onChange={e => setPromptText(e.target.value)}
-              placeholder={`챌린지 주제에 맞는 프롬프트를 작성해주세요.\n\nAI에게 어떤 방식으로 요청해야 최고의 결과를 얻을 수 있을지 생각해보세요.`}
-              disabled={loading || generations.length >= MAX_ATTEMPTS}
-              rows={6}
-              aria-label="프롬프트 입력"
-            />
-
-            {error && (
-              <p role="alert" className="mt-2.5 text-sm text-error">{error}</p>
-            )}
-
-            <div className="flex justify-end mt-3">
-              <Button
-                variant="accent"
-                onClick={handleGenerate}
-                disabled={loading || !promptText.trim() || generations.length >= MAX_ATTEMPTS}
-                className="text-[15px] px-6 py-2.5"
-              >
-                {loading ? '생성 중...' : '실행하기'}
-              </Button>
-            </div>
-          </Card>
+            {error && <p role="alert" className="text-sm text-error">{error}</p>}
+          </>
         )}
 
-        {/* Confirm modal */}
+        {generations.length === 0 ? (
+          <Card className="p-8 text-center text-text-faint">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mx-auto" aria-hidden="true">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <p className="text-sm mt-2">실행하면 결과물이 여기에 표시돼요</p>
+          </Card>
+        ) : activeGen && (
+          <>
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[15px] font-semibold text-text-primary">
+                  결과물 · 시도 {activeGen.attempt_number}
+                </span>
+                {activeGen.id === generations[0]?.id && <Badge variant="accent">최신</Badge>}
+              </div>
+              <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
+                ✦ GEMINI 결과물
+              </div>
+              <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
+                {activeGen.result_text}
+              </p>
+            </Card>
+
+            {!submittedGenId && (
+              <>
+                <div>
+                  <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+                    시도 기록 — 하나 골라 제출
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                    {generations.map(gen => (
+                      <button
+                        key={gen.id}
+                        type="button"
+                        onClick={() => setActiveGenId(gen.id)}
+                        className={[
+                          'shrink-0 w-[130px] text-left p-3 rounded-lg border bg-bg-card transition-colors',
+                          activeGenId === gen.id
+                            ? 'border-accent bg-accent-light'
+                            : 'border-border hover:border-border-strong',
+                        ].join(' ')}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <b className="text-xs">시도 {gen.attempt_number}</b>
+                          {activeGenId === gen.id && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
+                              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div className="text-xs text-text-muted leading-snug h-[54px] overflow-hidden">
+                          {gen.result_text.slice(0, 46)}…
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => {
+                    if (activeGenId) {
+                      setSelectedGenId(activeGenId)
+                      setShowConfirm(true)
+                    }
+                  }}
+                >
+                  이 시도 제출하기
+                </Button>
+              </>
+            )}
+          </>
+        )}
+
         {showConfirm && selectedGenId && (
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-6"
+            className="fixed inset-0 bg-black/45 flex items-end justify-center z-[200] p-4"
           >
-            <Card className="p-7 max-w-[400px] w-full">
-              <h3 id="confirm-title" className="text-lg font-bold mb-3">정말 제출할까요?</h3>
-              <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-                제출 후에는 수정할 수 없어요. 선택한 결과물로 챌린지에 참여하게 됩니다. (+5 🪙)
+            <Card className="p-6 max-w-[430px] w-full rounded-t-xl animate-[sheet-up_240ms_var(--ease-spring)]">
+              <div className="w-10 h-1 bg-border-strong rounded-full mx-auto mb-4" />
+              <h3 id="confirm-title" className="text-lg font-bold mb-2">제출하면 수정·삭제할 수 없어요</h3>
+              <p className="text-sm text-text-secondary mb-5 leading-relaxed">
+                계속할까요? 선택한 결과물로 챌린지에 참여하게 됩니다.
               </p>
               <div className="flex gap-2.5">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowConfirm(false)}
-                  className="flex-1"
-                >
+                <Button variant="ghost" onClick={() => setShowConfirm(false)} className="flex-1">
                   취소
                 </Button>
-                <Button
-                  variant="accent"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="flex-1"
-                >
-                  {submitting ? '제출 중...' : '제출하기'}
+                <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1">
+                  {submitting ? '제출 중...' : '제출 확정'}
                 </Button>
               </div>
             </Card>
-          </div>
-        )}
-
-        {/* Generations list */}
-        {generations.length > 0 && (
-          <div>
-            <h2 className="text-base font-bold text-text-primary mb-4">내 시도 목록</h2>
-            <div className="flex flex-col gap-4">
-              {generations.map(gen => (
-                <SubmissionCard
-                  key={gen.id}
-                  attemptNumber={gen.attempt_number}
-                  promptText={gen.prompt_text}
-                  resultText={gen.result_text}
-                  isSubmitted={gen.id === submittedGenId}
-                  isSelected={gen.id === selectedGenId}
-                  onSelect={
-                    !submittedGenId
-                      ? () => {
-                          if (selectedGenId === gen.id) {
-                            setSelectedGenId(null)
-                          } else {
-                            setSelectedGenId(gen.id)
-                            setShowConfirm(true)
-                          }
-                        }
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
           </div>
         )}
       </main>

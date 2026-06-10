@@ -1,11 +1,10 @@
-import { createServiceClient } from '@/lib/supabase/server'
-import Header from '@/components/Header'
-import Link from 'next/link'
-import VoteCard from '@/components/VoteCard'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import AppBar from '@/components/AppBar'
+import Podium from '@/components/Podium'
+import RankBadge from '@/components/RankBadge'
 import CopyLinkButton from './CopyLinkButton'
 import { rankSubmissions } from '@/lib/ranking'
 import { Card } from '@/ds/card'
-import { Badge } from '@/ds/badge'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -18,35 +17,42 @@ interface RankedSubmission {
   result_text: string
   prompt_text: string
   user_nickname: string
+  isMe?: boolean
 }
 
 export const dynamic = 'force-dynamic'
 
+function anonLabel(id: string) {
+  return id.replace(/-/g, '').slice(0, 3)
+}
+
 export default async function ResultsPage({ params }: PageProps) {
   const { id } = await params
-  // 결과는 전체 공개(PRD §4.0-E). 남의 generation·닉네임을 읽어야 하므로 RLS를 우회하는 service client 사용.
-  const supabase = await createServiceClient()
+  const supabase = await createClient()
+  const service = await createServiceClient()
 
-  const { data: challenge } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: challenge } = await service
     .from('challenges')
-    .select('id, title, instruction, voting_end_at')
+    .select('id, title, instruction')
     .eq('id', id)
     .single()
 
   if (!challenge) {
     return (
       <div className="min-h-screen bg-bg-base">
-        <Header />
-        <div className="container pt-12 text-center">
+        <AppBar title="결과 · 순위" showBack backHref="/" statusLabel="결과 발표" statusVariant="accent" />
+        <div className="max-w-[430px] mx-auto px-4 pt-12 text-center">
           <p className="text-text-muted">챌린지를 찾을 수 없어요.</p>
         </div>
       </div>
     )
   }
 
-  const { data: submissions } = await supabase
+  const { data: submissions } = await service
     .from('submissions')
-    .select(`id, final_rank, final_vote_count, user_id, generations!inner(prompt_text, result_text)`)
+    .select(`id, final_rank, final_vote_count, user_id, submitted_at, generations!inner(prompt_text, result_text)`)
     .eq('challenge_id', id)
     .not('final_rank', 'is', null)
     .order('final_rank', { ascending: true })
@@ -55,22 +61,12 @@ export default async function ResultsPage({ params }: PageProps) {
   let rankedSubs: RankedSubmission[] = []
 
   if (submissions && submissions.length > 0) {
-    const userIds = submissions.map((s: { user_id: string }) => s.user_id)
-    const { data: users } = await supabase
-      .from('users')
-      .select('id, nickname')
-      .in('id', userIds)
-
+    const userIds = submissions.map(s => s.user_id)
+    const { data: users } = await service.from('users').select('id, nickname').in('id', userIds)
     const userMap: Record<string, string> = {}
-    users?.forEach((u: { id: string; nickname: string }) => { userMap[u.id] = u.nickname })
+    users?.forEach(u => { userMap[u.id] = u.nickname })
 
-    rankedSubs = submissions.map((s: {
-      id: string;
-      final_rank: number;
-      final_vote_count: number;
-      user_id: string;
-      generations: { prompt_text: string; result_text: string } | Array<{ prompt_text: string; result_text: string }>;
-    }) => {
+    rankedSubs = submissions.map(s => {
       const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
       return {
         id: s.id,
@@ -79,41 +75,29 @@ export default async function ResultsPage({ params }: PageProps) {
         result_text: gen?.result_text ?? '',
         prompt_text: gen?.prompt_text ?? '',
         user_nickname: userMap[s.user_id] ?? '익명',
+        isMe: user?.id === s.user_id,
       }
     })
   } else {
-    const { data: allSubs } = await supabase
+    const { data: allSubs } = await service
       .from('submissions')
       .select(`id, user_id, submitted_at, generations!inner(prompt_text, result_text, attempt_number)`)
       .eq('challenge_id', id)
 
     if (allSubs) {
-      const subIds = allSubs.map((s: { id: string }) => s.id)
+      const subIds = allSubs.map(s => s.id)
       const voteCounts: Record<string, number> = {}
       for (const subId of subIds) {
-        const { count } = await supabase
-          .from('votes')
-          .select('*', { count: 'exact', head: true })
-          .eq('submission_id', subId)
+        const { count } = await service.from('votes').select('*', { count: 'exact', head: true }).eq('submission_id', subId)
         voteCounts[subId] = count ?? 0
       }
 
-      const userIds = allSubs.map((s: { user_id: string }) => s.user_id)
-      const { data: users } = await supabase
-        .from('users')
-        .select('id, nickname')
-        .in('id', userIds)
-
+      const userIds = allSubs.map(s => s.user_id)
+      const { data: users } = await service.from('users').select('id, nickname').in('id', userIds)
       const userMap: Record<string, string> = {}
-      users?.forEach((u: { id: string; nickname: string }) => { userMap[u.id] = u.nickname })
+      users?.forEach(u => { userMap[u.id] = u.nickname })
 
-      // finalize와 동일한 규칙(득표→시도수→제출시각, 동률 공동순위)으로 미리보기 순위 계산
-      const rankable = allSubs.map((s: {
-        id: string;
-        user_id: string;
-        submitted_at: string;
-        generations: { prompt_text: string; result_text: string; attempt_number: number } | Array<{ prompt_text: string; result_text: string; attempt_number: number }>;
-      }) => {
+      const rankable = allSubs.map(s => {
         const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
         return {
           id: s.id,
@@ -133,86 +117,89 @@ export default async function ResultsPage({ params }: PageProps) {
         result_text: s.result_text,
         prompt_text: s.prompt_text,
         user_nickname: userMap[s.user_id] ?? '익명',
+        isMe: user?.id === s.user_id,
       }))
     }
   }
 
+  const winner = rankedSubs.find(s => s.rank === 1)
+  const podiumEntries = rankedSubs
+    .filter(s => s.rank <= 3)
+    .map(s => ({ id: s.id, rank: s.rank, votes: s.final_vote_count, label: anonLabel(s.id) }))
+
   return (
     <div className="min-h-screen bg-bg-base">
-      <Header />
+      <AppBar title="결과 · 순위" showBack backHref="/" statusLabel="결과 발표" statusVariant="accent" />
 
-      <main className="container pt-8 pb-16">
-        <Link
-          href="/"
-          className="text-sm text-text-secondary no-underline inline-flex items-center gap-1 mb-5 hover:text-text-primary transition-colors"
-        >
-          ← 홈으로
-        </Link>
-
-        {/* Challenge header */}
-        <Card className="p-6 mb-5">
-          <Badge variant="accent" className="mb-3">결과 공개</Badge>
-          <h1 className="text-[22px] font-extrabold text-text-primary mb-2 tracking-tight">{challenge.title}</h1>
-          <p className="text-sm text-text-secondary leading-relaxed mb-4">{challenge.instruction}</p>
-          <CopyLinkButton />
-        </Card>
-
-        {/* Winner highlight */}
-        {rankedSubs.length > 0 && rankedSubs[0] && (
-          <Card className="p-6 mb-5 border-accent-mid bg-accent-light">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-full bg-accent flex items-center justify-center text-white text-lg font-extrabold shrink-0">
-                1
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">우승</div>
-                <div className="text-base font-bold text-text-primary">{rankedSubs[0].user_nickname}</div>
-              </div>
-              <div className="ml-auto text-right">
-                <div className="text-xl font-extrabold text-accent">{rankedSubs[0].final_vote_count}표</div>
-              </div>
-            </div>
-
-            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
-              우승 프롬프트
-            </div>
-            <p className="text-[13px] text-text-secondary leading-relaxed px-3 py-2.5 bg-bg-card rounded-md font-mono mb-3 border border-border">
-              {rankedSubs[0].prompt_text}
-            </p>
-
-            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
-              AI 응답
-            </div>
-            <p className="text-[14px] text-text-primary leading-[1.7] whitespace-pre-wrap px-3 py-2.5 bg-bg-card rounded-md border border-border">
-              {rankedSubs[0].result_text}
-            </p>
-          </Card>
-        )}
-
-        {/* All rankings */}
-        <h2 className="text-base font-bold text-text-primary mb-4">전체 순위</h2>
-
-        {rankedSubs.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-base text-text-muted">아직 제출된 결과가 없어요.</p>
-          </Card>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {rankedSubs.map(sub => (
-              <VoteCard
-                key={sub.id}
-                submissionId={sub.id}
-                rank={sub.rank}
-                resultText={sub.result_text}
-                promptText={sub.prompt_text}
-                voteCount={sub.final_vote_count}
-                hasVoted={false}
-                isRevealed={true}
-                onVote={() => {}}
-              />
-            ))}
+      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-3.5">
+        <div className="text-center">
+          <div className="flex justify-center text-accent mb-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
+          <h2 className="text-[22px] font-extrabold text-text-primary tracking-tight">최종 결과</h2>
+          <p className="text-xs text-text-muted mt-1">&ldquo;{challenge.title}&rdquo;</p>
+        </div>
+
+        {podiumEntries.length > 0 && <Podium entries={podiumEntries} />}
+
+        {winner && (
+          <Card className="p-4 border-accent-mid">
+            <div className="flex items-center gap-1.5 text-accent text-[15px] font-semibold mb-2.5">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              우승작
+            </div>
+            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
+              ✦ GEMINI 결과물
+            </div>
+            <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3 mb-2">
+              {winner.result_text}
+            </p>
+            <p className="text-xs text-text-faint">결과물·프롬프트 전체 보기 →</p>
+          </Card>
         )}
+
+        <div>
+          <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+            전체 순위
+          </div>
+          {rankedSubs.length === 0 ? (
+            <Card className="p-12 text-center">
+              <p className="text-base text-text-muted">아직 제출된 결과가 없어요.</p>
+            </Card>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {rankedSubs.map(sub => (
+                <div
+                  key={sub.id}
+                  className={[
+                    'flex items-center gap-2.5 px-3 py-2.5 border rounded-md bg-bg-card',
+                    sub.isMe ? 'border-accent-mid bg-accent-light' : 'border-border',
+                  ].join(' ')}
+                >
+                  <RankBadge rank={sub.rank} />
+                  <span className="text-sm flex-1 truncate">
+                    익명#{anonLabel(sub.id)}
+                    {sub.isMe && <span className="text-xs text-text-faint"> · 나</span>}
+                  </span>
+                  <b className="text-sm tabular-nums">{sub.final_vote_count}표</b>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Card className="p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-text-muted truncate tabular-nums">
+              /challenge/{id}/results
+            </span>
+            <CopyLinkButton />
+          </div>
+        </Card>
       </main>
     </div>
   )
