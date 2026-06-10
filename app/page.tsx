@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
-import Header from '@/components/Header'
+import AppBar from '@/components/AppBar'
+import TabBar from '@/components/TabBar'
 import ChallengeHero from '@/components/ChallengeHero'
 import { Card } from '@/ds/card'
 
@@ -33,6 +34,11 @@ export default async function HomePage() {
 
   const state = currentChallenge ? getChallengeState(currentChallenge, now) : null
 
+  const statusLabel = state === 'submission' ? '제출 기간'
+    : state === 'voting' ? '투표 기간'
+    : state === 'results' ? '결과 발표'
+    : undefined
+
   let participantCount = 0
   if (currentChallenge) {
     const { count } = await supabase
@@ -63,9 +69,9 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-bg-base">
-      <Header />
+      <AppBar title="프롬프트 아레나" statusLabel={statusLabel} />
 
-      <main className="container pt-8 pb-16">
+      <main className="max-w-[430px] mx-auto px-4 pt-6 pb-20">
         {/* Hero Section */}
         {currentChallenge && state ? (
           <ChallengeHero
@@ -160,6 +166,8 @@ export default async function HomePage() {
           </div>
         )}
       </main>
+
+      <TabBar />
     </div>
   )
 }

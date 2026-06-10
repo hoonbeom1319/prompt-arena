@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Header from '@/components/Header'
+import AppBar from '@/components/AppBar'
+import TabBar from '@/components/TabBar'
 import CoinDisplay from '@/components/CoinDisplay'
 import BadgeList from '@/components/BadgeList'
 import Link from 'next/link'
@@ -54,9 +55,9 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-bg-base">
-      <Header />
+      <AppBar title="내 프로필" />
 
-      <main className="container pt-8 pb-16">
+      <main className="max-w-[430px] mx-auto px-4 pt-6 pb-20">
         {/* Profile header */}
         <Card className="p-7 mb-6">
           <div className="flex items-start justify-between flex-wrap gap-4">
@@ -162,6 +163,8 @@ export default async function ProfilePage() {
           )}
         </Card>
       </main>
+
+      <TabBar />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
-import Header from '@/components/Header'
+import AppBar from '@/components/AppBar'
+import TabBar from '@/components/TabBar'
 import Link from 'next/link'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
@@ -63,11 +64,10 @@ export default async function ArchivePage() {
 
   return (
     <div className="min-h-screen bg-bg-base">
-      <Header />
+      <AppBar title="지난 챌린지" />
 
-      <main className="container pt-8 pb-16">
+      <main className="max-w-[430px] mx-auto px-4 pt-6 pb-20">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">아카이브</h1>
           <p className="text-sm text-text-secondary">지금까지의 모든 챌린지를 확인해보세요</p>
         </div>
 
@@ -126,6 +126,8 @@ export default async function ArchivePage() {
           </div>
         )}
       </main>
+
+      <TabBar />
     </div>
   )
 }
