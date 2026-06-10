@@ -1,6 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 
 export async function generateWithPrompt({
   prompt,
@@ -13,40 +13,30 @@ export async function generateWithPrompt({
   temperature?: number
   wrapperText?: string | null
 }) {
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature,
-    },
-  })
-
-  // wrapperText에 {{prompt}}가 있으면 그 자리에(여러 개면 전부) 치환,
-  // 래퍼는 있는데 placeholder가 없으면 참가자 프롬프트를 버리지 말고 뒤에 이어붙인다.
   const fullPrompt = wrapperText
     ? wrapperText.includes('{{prompt}}')
       ? wrapperText.replaceAll('{{prompt}}', prompt)
       : `${wrapperText}\n\n${prompt}`
     : prompt
 
-  const result = await model.generateContent(fullPrompt)
-  const response = result.response
-  const text = response.text()
+  const response = await ai.models.generateContent({
+    model: modelName,
+    contents: fullPrompt,
+    config: {
+      temperature,
+      thinkingConfig: {
+        thinkingBudget: 0,
+      },
+    },
+  })
 
-  return text
+  return response.text ?? ''
 }
 
 export async function generateChallengeDraft(topic: string): Promise<{
   title: string
   instruction: string
 }> {
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      temperature: 0.8,
-      responseMimeType: 'application/json',
-    },
-  })
-
   const prompt = `
 당신은 AI 프롬프트 대회 기획자입니다.
 주제: "${topic}"
@@ -61,8 +51,19 @@ JSON 형식으로 응답해주세요:
 }
 `
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      temperature: 0.8,
+      responseMimeType: 'application/json',
+      thinkingConfig: {
+        thinkingBudget: 0,
+      },
+    },
+  })
+
+  const text = response.text ?? ''
 
   try {
     const parsed = JSON.parse(text)

@@ -13,6 +13,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@google/genai": "^2.8.0",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-label": "^2.1.9",
     "@radix-ui/react-slot": "^1.2.5",
