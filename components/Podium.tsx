@@ -3,6 +3,7 @@ interface PodiumEntry {
   rank: number
   votes: number
   label: string
+  attemptNumber: number
 }
 
 interface PodiumProps {
@@ -17,10 +18,17 @@ export default function Podium({ entries }: PodiumProps) {
 
   if (podiumOrder.length === 0) return null
 
+  const tiedVoteCounts = new Set(
+    entries
+      .map(e => e.votes)
+      .filter((v, _, arr) => arr.filter(x => x === v).length > 1)
+  )
+
   return (
     <div className="flex items-end justify-center gap-2.5">
       {podiumOrder.map(entry => {
         const isFirst = entry.rank === 1
+        const showAttempt = tiedVoteCounts.has(entry.votes)
         return (
           <div key={entry.id} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
             {isFirst && (
@@ -39,13 +47,22 @@ export default function Podium({ entries }: PodiumProps) {
             <div className="text-xs font-bold text-text-primary truncate max-w-full text-center">
               익명#{entry.label}
             </div>
-            <div className="text-[11px] text-text-muted tabular-nums">{entry.votes}표</div>
+            <div className="text-center leading-tight">
+              <div className="text-[11px] text-text-muted tabular-nums">{entry.votes}표</div>
+              {showAttempt && (
+                <div className="text-[10px] text-text-faint tabular-nums">{entry.attemptNumber}회 시도</div>
+              )}
+            </div>
             <div
-              className={[
-                'w-full rounded-t-md flex items-start justify-center pt-2 text-[22px] font-extrabold',
-                isFirst ? 'bg-accent text-white' : 'bg-bg-base text-text-faint border border-border border-b-0',
-              ].join(' ')}
-              style={{ height: BLOCK_HEIGHTS[entry.rank] ?? 42 }}
+              className="w-full rounded-t-md flex items-start justify-center pt-2 text-[22px] font-extrabold"
+              style={{
+                height: BLOCK_HEIGHTS[entry.rank] ?? 42,
+                ...(entry.rank === 1
+                  ? { background: 'var(--color-accent)', color: '#fff' }
+                  : entry.rank === 2
+                  ? { background: 'var(--color-accent-mid)', color: 'var(--color-accent-hover)' }
+                  : { background: 'oklch(91% 0.05 238)', color: 'var(--color-accent)' }),
+              }}
             >
               {entry.rank}
             </div>

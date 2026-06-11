@@ -10,6 +10,7 @@ interface RankedSub {
   final_vote_count: number
   result_text: string
   prompt_text: string
+  attemptNumber: number
   isMe?: boolean
 }
 
@@ -19,6 +20,13 @@ function anonLabel(id: string) {
 
 export default function ResultList({ subs }: { subs: RankedSub[] }) {
   const [openId, setOpenId] = useState<string | null>(null)
+
+  // 같은 득표수가 존재하는 항목 집합 — 시도 횟수 표시 여부 결정용
+  const tiedVoteCounts = new Set(
+    subs
+      .map(s => s.final_vote_count)
+      .filter((v, _, arr) => arr.filter(x => x === v).length > 1)
+  )
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -44,7 +52,12 @@ export default function ResultList({ subs }: { subs: RankedSub[] }) {
                 익명#{anonLabel(sub.id)}
                 {sub.isMe && <span className="text-xs text-text-faint"> · 나</span>}
               </span>
-              <b className="text-sm tabular-nums">{sub.final_vote_count}표</b>
+              <span className="text-right leading-tight">
+                <b className="text-sm tabular-nums">{sub.final_vote_count}표</b>
+                {tiedVoteCounts.has(sub.final_vote_count) && (
+                  <span className="block text-[10px] text-text-faint tabular-nums">{sub.attemptNumber}회 시도</span>
+                )}
+              </span>
               <svg
                 width="14" height="14" viewBox="0 0 24 24" fill="none"
                 className={cn('text-text-muted transition-transform duration-200 shrink-0', isOpen && 'rotate-180')}

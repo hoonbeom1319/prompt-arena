@@ -24,7 +24,7 @@ export default function AdminShell({ children }: AdminShellProps) {
 
   return (
     <div className="min-h-screen bg-bg-subtle">
-      <div className="max-w-[1080px] mx-auto min-h-screen flex">
+      <div className="w-full min-h-screen flex">
         <nav
           className="w-[210px] shrink-0 border-r border-border bg-bg-card p-3 flex flex-col gap-0.5"
           aria-label="관리자 메뉴"

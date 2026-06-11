@@ -31,10 +31,31 @@ export default async function AdminSubmissionsPage() {
   type Sub = NonNullable<typeof submissions>[number]
   const grouped = new Map<string, { challenge: Sub['challenges']; subs: Sub[] }>()
 
+  // 실시간 투표수 집계
+  const challengeIds = [...new Set((submissions ?? []).map(s => s.challenge_id))]
+  const liveVoteCounts = new Map<string, number>()
+  if (challengeIds.length > 0) {
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('submission_id')
+      .in('challenge_id', challengeIds)
+    for (const v of votes ?? []) {
+      liveVoteCounts.set(v.submission_id, (liveVoteCounts.get(v.submission_id) ?? 0) + 1)
+    }
+  }
+
   for (const sub of submissions ?? []) {
     const cid = sub.challenge_id
     if (!grouped.has(cid)) grouped.set(cid, { challenge: sub.challenges, subs: [] })
     grouped.get(cid)!.subs.push(sub)
+  }
+
+  for (const { subs } of grouped.values()) {
+    subs.sort((a, b) => {
+      const va = a.final_vote_count ?? liveVoteCounts.get(a.id) ?? 0
+      const vb = b.final_vote_count ?? liveVoteCounts.get(b.id) ?? 0
+      return vb - va
+    })
   }
 
   return (
@@ -88,7 +109,8 @@ export default async function AdminSubmissionsPage() {
                         const gen = Array.isArray(sub.generations) ? sub.generations[0] : sub.generations
                         const promptText = (gen as { prompt_text: string; result_text: string } | null)?.prompt_text ?? '-'
                         const resultText = (gen as { prompt_text: string; result_text: string } | null)?.result_text ?? '-'
-                        const votesHidden = (state === 'submission' || state === 'voting') && sub.final_vote_count == null
+                        const displayVotes = sub.final_vote_count ?? liveVoteCounts.get(sub.id) ?? 0
+                        const isLive = sub.final_vote_count == null
 
                         return (
                           <tr key={sub.id} className="border-b border-border last:border-0 align-top">
@@ -111,9 +133,10 @@ export default async function AdminSubmissionsPage() {
                               </p>
                             </td>
                             <td className="px-4 py-3 text-right tabular-nums text-text-secondary whitespace-nowrap">
-                              {votesHidden
-                                ? <span className="text-text-faint text-xs">집계 전</span>
-                                : (sub.final_vote_count ?? 0)}
+                              {displayVotes}
+                              {isLive && displayVotes > 0 && (
+                                <span className="text-text-faint text-[10px] ml-1">(실시간)</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-right tabular-nums text-text-secondary whitespace-nowrap">
                               {sub.final_rank ? `${sub.final_rank}위` : '-'}

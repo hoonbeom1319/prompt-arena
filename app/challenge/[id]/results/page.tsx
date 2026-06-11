@@ -17,6 +17,7 @@ interface RankedSubmission {
   result_text: string
   prompt_text: string
   user_nickname: string
+  attemptNumber: number
   isMe?: boolean
 }
 
@@ -52,7 +53,7 @@ export default async function ResultsPage({ params }: PageProps) {
 
   const { data: submissions } = await service
     .from('submissions')
-    .select(`id, final_rank, final_vote_count, user_id, submitted_at, generations!inner(prompt_text, result_text)`)
+    .select(`id, final_rank, final_vote_count, user_id, submitted_at, generations!inner(prompt_text, result_text, attempt_number)`)
     .eq('challenge_id', id)
     .not('final_rank', 'is', null)
     .order('final_rank', { ascending: true })
@@ -75,6 +76,7 @@ export default async function ResultsPage({ params }: PageProps) {
         result_text: gen?.result_text ?? '',
         prompt_text: gen?.prompt_text ?? '',
         user_nickname: userMap[s.user_id] ?? '익명',
+        attemptNumber: gen?.attempt_number ?? 1,
         isMe: user?.id === s.user_id,
       }
     })
@@ -117,6 +119,7 @@ export default async function ResultsPage({ params }: PageProps) {
         result_text: s.result_text,
         prompt_text: s.prompt_text,
         user_nickname: userMap[s.user_id] ?? '익명',
+        attemptNumber: s.attemptNumber,
         isMe: user?.id === s.user_id,
       }))
     }
@@ -125,7 +128,7 @@ export default async function ResultsPage({ params }: PageProps) {
   const winner = rankedSubs.find(s => s.rank === 1)
   const podiumEntries = rankedSubs
     .filter(s => s.rank <= 3)
-    .map(s => ({ id: s.id, rank: s.rank, votes: s.final_vote_count, label: anonLabel(s.id) }))
+    .map(s => ({ id: s.id, rank: s.rank, votes: s.final_vote_count, label: anonLabel(s.id), attemptNumber: s.attemptNumber }))
 
   return (
     <div className="min-h-screen bg-bg-base">
