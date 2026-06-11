@@ -79,7 +79,10 @@ export default function BlindCard({
           )}
         >
           <div className="overflow-hidden">
-            <div className="border border-dashed border-border rounded-lg py-8 flex flex-col items-center gap-2">
+            <div
+              className="border border-dashed border-border rounded-lg py-5 flex flex-col items-center gap-2"
+              style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.03) 5px, rgba(0,0,0,0.03) 10px)' }}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-text-muted" aria-hidden="true">
                 <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.5"/>

@@ -1,11 +1,11 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-10
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11
 metadata:
   type: project
 ---
 
-## 현재 상태 (2026-06-10 갱신)
+## 현재 상태 (2026-06-11 갱신)
 
 ### 완료된 작업 전체
 
@@ -28,7 +28,11 @@ metadata:
 #### 화면 — 사용자
 - **홈** (`app/page.tsx` + `components/home/HomeBody.tsx`): 제출/투표/결과/공백 4상태 분기
 - **생성** (`app/challenge/[id]/generate/page.tsx`): 3회 한도, instruction 표시
-- **투표** (`app/challenge/[id]/vote/page.tsx`): BlindCard, 3표 완료 잠금 + 프롬프트 해제 메시지. API에서 3표 완료 시 prompt_text 반환하지만 UI 표시는 미구현
+- **투표** (`app/challenge/[id]/vote/page.tsx`): BlindCard 전면 개편 (2026-06-11)
+  - 프롬프트 섹션 항상 노출 — 잠금(자물쇠 + n/3 카운터 + 사선 배경)
+  - 3표 완료 시 grid-template-rows 트릭으로 잠금 아웃 / 프롬프트 인 슬라이드 전환
+  - 결과물 텍스트 5줄 클램프 + 전체보기/접기 (max-height transition)
+  - 3표 완료 후 API 재호출로 prompt_text 즉시 반영
 - **결과** (`app/challenge/[id]/results/page.tsx`): Podium, 전체 순위, CopyLinkButton(URL 공유 ✅). 전체 프롬프트 목록 표시 미구현
 - **아카이브** (`app/archive/page.tsx`): `voting_end_at < now` 필터로 결과 단계 챌린지만 표시
 - **프로필** (`app/profile/page.tsx`): 닉네임 인라인 편집(`NicknameEditor`), stat 3열, 지난 챌린지/코인 내역. 뱃지 섹션 미구현
@@ -55,11 +59,7 @@ metadata:
 
 | 항목 | PRD 근거 | 비고 |
 |------|---------|------|
-| 프롬프트 열람 UI — 투표 페이지 | F-5, E | API는 완성. BlindCard에 prompt_text 표시 코드 없음 |
-| 프롬프트 열람 UI — 결과 페이지 | F-6, E | "전체 보기 →" 텍스트만 있고 실제 표시 없음 |
-| 출품작 상세 화면 | 화면목록 #4 | BlindCard "자세히" 버튼 → `?detail=` 라우팅 미구현 |
-| 뱃지 UI (프로필) | F-9 | BadgeList 컴포넌트 있음. DB 지급 로직 있음. 프로필 섹션만 없음 |
-| 첫 제출 뱃지 (`first_submission`) | F-9 | finalize에 없음. submit API에서 호출 필요 |
+| 뱃지 UI (프로필) | F-9 | BadgeList 컴포넌트 있음. DB 지급 로직 있음. 프로필 섹션만 없음. 홀딩 중 |
 
 ### 선택적 항목
 
