@@ -1,11 +1,11 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11 (2차)
 metadata:
   type: project
 ---
 
-## 현재 상태 (2026-06-11 갱신)
+## 현재 상태 (2026-06-11 2차 갱신)
 
 ### 완료된 작업 전체
 
@@ -13,6 +13,7 @@ metadata:
 - lint 전량 수정, finalize 멱등성, Vercel Cron 자동 확정
 - 어드민 챌린지 생성 시 활성 챌린지 충돌 경고
 - DB 초기화 버튼 (admin 대시보드)
+- SVG favicon (`app/icon.svg`, accent 색상 #0284c7)
 
 #### 디자인 시스템
 - sky-600 accent (OKLCH `oklch(58.8% 0.158 241.966)`), slate 뉴트럴
@@ -26,17 +27,20 @@ metadata:
 - `nextjs-toploader`: 페이지 이동 시 상단 프로그레스 바 (sky accent, 2px)
 
 #### 화면 — 사용자
-- **홈** (`app/page.tsx` + `components/home/HomeBody.tsx`): 제출/투표/결과/공백 4상태 분기
+- **홈** (`app/page.tsx` + `lib/home-data.ts`): 제출/투표/결과/공백 4상태 분기. totalVotes service client로 RLS 우회 수정
 - **생성** (`app/challenge/[id]/generate/page.tsx`): 3회 한도, instruction 표시
-- **투표** (`app/challenge/[id]/vote/page.tsx`): BlindCard 전면 개편 (2026-06-11)
+- **투표** (`app/challenge/[id]/vote/page.tsx` + `components/BlindCard.tsx`): 전면 개편
   - 프롬프트 섹션 항상 노출 — 잠금(자물쇠 + n/3 카운터 + 사선 배경)
-  - 3표 완료 시 grid-template-rows 트릭으로 잠금 아웃 / 프롬프트 인 슬라이드 전환
+  - 3표 완료 시 grid-template-rows 트릭으로 잠금 아웃 / 프롬프트 인 슬라이드
   - 결과물 텍스트 5줄 클램프 + 전체보기/접기 (max-height transition)
   - 3표 완료 후 API 재호출로 prompt_text 즉시 반영
-- **결과** (`app/challenge/[id]/results/page.tsx`): Podium, 전체 순위, CopyLinkButton(URL 공유 ✅). 전체 프롬프트 목록 표시 미구현
+- **결과** (`app/challenge/[id]/results/page.tsx` + `ResultList.tsx`): 우승작 프롬프트 직접 표시, 전체 순위 아코디언으로 프롬프트+결과물 열람
 - **아카이브** (`app/archive/page.tsx`): `voting_end_at < now` 필터로 결과 단계 챌린지만 표시
-- **프로필** (`app/profile/page.tsx`): 닉네임 인라인 편집(`NicknameEditor`), stat 3열, 지난 챌린지/코인 내역. 뱃지 섹션 미구현
-- **로그인** (`app/auth/login/page.tsx`): Google + 이메일, OAuth redirectTo 수정
+- **프로필** (`app/profile/page.tsx`): 닉네임 인라인 편집, stat 3열, 지난 챌린지/코인 내역(최대 5개 + "전체 내역" 링크). 뱃지 섹션 홀딩
+- **코인 전체 내역** (`app/profile/coins/page.tsx`): 날짜별 그룹핑, 시간 표시, 보유 잔액
+- **로그인** (`app/auth/login/page.tsx`): Google + 이메일, 하단 약관 링크 추가
+- **약관** (`app/terms/page.tsx`): 서비스 이용약관 (10개 조항)
+- **개인정보처리방침** (`app/privacy/page.tsx`): 수집 항목·위탁업체 표 포함
 
 #### 화면 — 어드민
 - AdminShell: 사이드바 — 대시보드 / 챌린지 관리(`/admin/challenges`) / 시드 제출 / 출품·결과 / 사용자·코인
@@ -50,7 +54,7 @@ metadata:
 - Gemini: `@google/genai` 신 SDK, `thinkingBudget: 0` (응답 1초대)
 - 익명성: `user_${id6}` 형태, 닉네임 변경 가능
 - 코인: 투표·제출·순위 적립. finalize cron에서 자동 지급
-- 뱃지 백엔드: finalize 시 `first_win`, `wins_3`, `votes_30` 지급 (`checkAndAwardBadge`)
+- 뱃지 백엔드: finalize 시 `first_win`, `wins_3`, `votes_30`, `first_submission` 지급
 - 공유: CopyLinkButton으로 `/challenge/{id}/results` URL 복사
 
 ---
