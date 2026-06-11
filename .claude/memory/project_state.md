@@ -1,11 +1,11 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11 (2차)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11 (4차)
 metadata:
   type: project
 ---
 
-## 현재 상태 (2026-06-11 2차 갱신)
+## 현재 상태 (2026-06-11 4차 갱신)
 
 ### 완료된 작업 전체
 
@@ -56,6 +56,22 @@ metadata:
 - 코인: 투표·제출·순위 적립. finalize cron에서 자동 지급
 - 뱃지 백엔드: finalize 시 `first_win`, `wins_3`, `votes_30`, `first_submission` 지급
 - 공유: CopyLinkButton으로 `/challenge/{id}/results` URL 복사
+
+---
+
+#### 리팩터링 진행 중 (2026-06-11)
+
+구조 개선 작업 3단계로 진행 중. **Step 1 완료, Step 2·3 내일 이어서.**
+
+**배경:** 파일 수 증가로 코드 탐색이 어려워짐. 기술 역할별 분류(app/components/ds/lib)에서 `widgets/` 조합 레이어 추가하는 방향으로 결정.
+
+- **Step 1 완료** — `widgets/` 레이어 추가
+  - `components/home/HomeBody.tsx` → `widgets/home/HomeBody.tsx`
+  - `HomeBodyProps` 17개 flat → 5개 그룹 객체 (challenge/countdown/stats/user/top3)
+  - `TopRankEntry`, `NextChallengePreview` 타입을 `lib/home-data.ts`로 이동 (lib→components 레이어 위반 해소)
+  - idle 상태 더미값 제거 (`<HomeBody state="idle" nextChallenge={...} />`)
+- **Step 2 예정** — `components/` 서브폴더 그루핑 (nav/, challenge/, vote/, result/ 등)
+- **Step 3 예정** — `lib/` 도메인 로직 서브폴더 정리
 
 ---
 
