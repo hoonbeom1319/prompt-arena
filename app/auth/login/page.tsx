@@ -228,6 +228,11 @@ export default function LoginPage() {
           <p className="text-center text-[12px] text-text-faint leading-relaxed">
             회원가입 시 인증 메일 확인이 필요해요
           </p>
+          <p className="text-center text-[11px] text-text-faint">
+            <Link href="/terms" className="underline hover:text-text-muted">이용약관</Link>
+            {' · '}
+            <Link href="/privacy" className="underline hover:text-text-muted">개인정보처리방침</Link>
+          </p>
         </div>
       </main>
     </div>
