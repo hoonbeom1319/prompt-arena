@@ -3,7 +3,7 @@ import { getChallengeState } from '@/lib/challenge-state'
 import { fetchHomeData } from '@/lib/home-data'
 import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
-import HomeBody from '@/components/home/HomeBody'
+import HomeBody from '@/widgets/home/HomeBody'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,40 +48,35 @@ export default async function HomePage() {
       <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-20 md:pb-10 flex flex-col gap-3.5">
         {currentChallenge && homeData.state ? (
           <HomeBody
-            challengeId={currentChallenge.id}
-            title={currentChallenge.title}
-            instruction={currentChallenge.instruction}
-            category={homeData.category}
             state={homeData.state}
-            countdownTarget={homeData.countdownTarget}
-            countdownLabel={homeData.countdownLabel}
-            participantCount={homeData.participantCount}
-            submissionCount={homeData.submissionCount}
-            totalVotes={homeData.totalVotes}
-            userId={user?.id ?? null}
-            userGenCount={homeData.userGenCount}
-            userVoteCount={homeData.userVoteCount}
-            userSubmissionId={homeData.userSubmissionId}
-            userRank={homeData.userRank}
-            userVotes={homeData.userVotes}
+            challenge={{
+              id: currentChallenge.id,
+              title: currentChallenge.title,
+              instruction: currentChallenge.instruction,
+              category: homeData.category,
+              votingStartAt: homeData.votingStartAt,
+            }}
+            countdown={homeData.countdownTarget
+              ? { target: homeData.countdownTarget, label: homeData.countdownLabel! }
+              : null}
+            stats={{
+              participants: homeData.participantCount,
+              submissions: homeData.submissionCount,
+              totalVotes: homeData.totalVotes,
+            }}
+            user={user ? {
+              id: user.id,
+              genCount: homeData.userGenCount,
+              voteCount: homeData.userVoteCount,
+              submissionId: homeData.userSubmissionId,
+              rank: homeData.userRank,
+              votes: homeData.userVotes,
+            } : null}
             top3={homeData.top3}
             nextChallenge={homeData.nextChallenge}
-            votingStartAt={homeData.votingStartAt}
           />
         ) : (
-          <HomeBody
-            challengeId=""
-            title=""
-            instruction=""
-            state="idle"
-            participantCount={0}
-            submissionCount={0}
-            totalVotes={0}
-            userGenCount={0}
-            userVoteCount={0}
-            top3={[]}
-            nextChallenge={homeData.nextChallenge}
-          />
+          <HomeBody state="idle" nextChallenge={homeData.nextChallenge} />
         )}
       </main>
 

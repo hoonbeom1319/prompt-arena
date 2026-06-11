@@ -1,7 +1,18 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState, getNextTransition, type Challenge, type ChallengeState } from '@/lib/challenge-state'
 import { rankSubmissions } from '@/lib/ranking'
-import type { TopRankEntry, NextChallengePreview } from '@/components/home/HomeBody'
+
+export interface TopRankEntry {
+  id: string
+  rank: number
+  votes: number
+}
+
+export interface NextChallengePreview {
+  title: string
+  category?: string | null
+  startAt: string
+}
 
 export async function fetchHomeData(challenge: Challenge | null, userId?: string | null) {
   const supabase = await createClient()

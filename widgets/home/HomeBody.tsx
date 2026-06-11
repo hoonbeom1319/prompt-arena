@@ -8,60 +8,51 @@ import RankBadge from "@/components/RankBadge";
 import { Card } from "@/ds/card";
 import { Badge } from "@/ds/badge";
 import { Button } from "@/ds/button";
-import { ChallengeState } from "@/lib/challenge-state";
+import { type ChallengeState } from "@/lib/challenge-state";
 import { MAX_GENERATIONS } from "@/lib/constants";
+import type { TopRankEntry, NextChallengePreview } from "@/lib/home-data";
 
-export interface TopRankEntry {
+interface ChallengeInfo {
   id: string;
-  rank: number;
-  votes: number;
-}
-
-export interface NextChallengePreview {
-  title: string;
-  category?: string | null;
-  startAt: string;
-}
-
-interface HomeBodyProps {
-  challengeId: string;
   title: string;
   instruction: string;
   category?: string | null;
-  state: ChallengeState;
-  countdownTarget?: string | null;
-  countdownLabel?: string | null;
-  participantCount: number;
-  submissionCount: number;
-  totalVotes: number;
-  userId?: string | null;
-  userGenCount: number;
-  userVoteCount: number;
-  userSubmissionId?: string | null;
-  userRank?: number | null;
-  userVotes?: number | null;
-  top3: TopRankEntry[];
-  nextChallenge?: NextChallengePreview | null;
   votingStartAt?: string | null;
+}
+
+interface Stats {
+  participants: number;
+  submissions: number;
+  totalVotes: number;
+}
+
+interface UserInfo {
+  id: string;
+  genCount: number;
+  voteCount: number;
+  submissionId?: string | null;
+  rank?: number | null;
+  votes?: number | null;
+}
+
+interface HomeBodyProps {
+  state: ChallengeState;
+  challenge?: ChallengeInfo;
+  countdown?: { target: string; label: string } | null;
+  stats?: Stats;
+  user?: UserInfo | null;
+  top3?: TopRankEntry[];
+  nextChallenge?: NextChallengePreview | null;
 }
 
 function UserStatusCard({
   state,
-  userId,
-  userSubmissionId,
-  userVoteCount,
-  userRank,
-  userVotes,
-}: Pick<
-  HomeBodyProps,
-  | "state"
-  | "userId"
-  | "userSubmissionId"
-  | "userVoteCount"
-  | "userRank"
-  | "userVotes"
->) {
-  if (!userId) {
+  user,
+}: {
+  state: ChallengeState;
+  user?: UserInfo | null;
+}) {
+  if (!user) {
     return (
       <Card className="p-3">
         <div className="flex items-center gap-2 text-sm text-text-secondary">
@@ -98,7 +89,7 @@ function UserStatusCard({
       <Card className="p-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-text-primary">내 제출</span>
-          {userSubmissionId ? (
+          {user.submissionId ? (
             <Badge variant="success">제출 완료</Badge>
           ) : (
             <Badge variant="outline">아직 안 함</Badge>
@@ -114,8 +105,8 @@ function UserStatusCard({
         <div className="flex items-center justify-between">
           <span className="text-sm text-text-primary">내 투표</span>
           <span className="flex items-center gap-2">
-            <VoteTokens used={userVoteCount} />
-            <b className="text-xs tabular-nums">{userVoteCount}/3</b>
+            <VoteTokens used={user.voteCount} />
+            <b className="text-xs tabular-nums">{user.voteCount}/3</b>
           </span>
         </div>
       </Card>
@@ -126,9 +117,9 @@ function UserStatusCard({
     <Card className="p-3">
       <div className="flex items-center justify-between">
         <span className="text-sm text-text-primary">내 결과</span>
-        {userRank != null ? (
+        {user.rank != null ? (
           <Badge variant="accent">
-            {userRank}위 · {userVotes ?? 0}표
+            {user.rank}위 · {user.votes ?? 0}표
           </Badge>
         ) : (
           <Badge variant="outline">미참가</Badge>
@@ -162,34 +153,18 @@ function NextTopicCard({ next }: { next: NextChallengePreview }) {
   );
 }
 
-function anonLabel(id: string) {
-  return id.replace(/-/g, "").slice(0, 3);
-}
+const anonLabel = (id: string) => id.replace(/-/g, "").slice(0, 3);
 
-export default function HomeBody(props: HomeBodyProps) {
-  const {
-    challengeId,
-    title,
-    instruction,
-    category,
-    state,
-    countdownTarget,
-    countdownLabel,
-    participantCount,
-    submissionCount,
-    totalVotes,
-    userId,
-    userGenCount,
-    userVoteCount,
-    userSubmissionId,
-    userRank,
-    userVotes,
-    top3,
-    nextChallenge,
-    votingStartAt,
-  } = props;
-
-  if (state === "idle" && !countdownTarget) {
+export default function HomeBody({
+  state,
+  challenge,
+  countdown,
+  stats,
+  user,
+  top3 = [],
+  nextChallenge,
+}: HomeBodyProps) {
+  if (state === "idle" || !challenge) {
     return (
       <div className="flex flex-col items-center text-center py-8 gap-4">
         <div className="w-16 h-16 rounded-full bg-bg-base text-text-muted flex items-center justify-center">
@@ -230,33 +205,32 @@ export default function HomeBody(props: HomeBodyProps) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <TopicCard category={category} title={title} instruction={instruction} />
+      <TopicCard
+        category={challenge.category}
+        title={challenge.title}
+        instruction={challenge.instruction}
+      />
 
       {state === "submission" && (
         <>
-          {countdownTarget && countdownLabel && (
+          {countdown && (
             <CountdownCard
-              targetTime={countdownTarget}
-              label={countdownLabel}
+              targetTime={countdown.target}
+              label={countdown.label}
             />
           )}
           <StatsRow
             stats={[
-              { value: String(participantCount), label: "참가자" },
-              { value: `${userGenCount}/${MAX_GENERATIONS}`, label: "내 시도" },
+              { value: String(stats?.participants ?? 0), label: "참가자" },
+              {
+                value: `${user?.genCount ?? 0}/${MAX_GENERATIONS}`,
+                label: "내 시도",
+              },
             ]}
           />
-          <UserStatusCard
-            state={state}
-            userId={userId}
-            userSubmissionId={userSubmissionId}
-            userVoteCount={userVoteCount}
-            userRank={userRank}
-            userVotes={userVotes}
-          />
+          <UserStatusCard state={state} user={user} />
 
-          {userSubmissionId ? (
-            /* 제출 완료 상태 */
+          {user?.submissionId ? (
             <>
               <Card className="p-6 flex flex-col items-center text-center gap-3 bg-accent-light">
                 <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center">
@@ -280,7 +254,7 @@ export default function HomeBody(props: HomeBodyProps) {
                   <div className="text-[17px] font-bold text-text-primary">
                     제출이 완료됐어요
                   </div>
-                  {votingStartAt && (
+                  {challenge.votingStartAt && (
                     <p className="text-sm text-text-secondary mt-1">
                       투표는 내일 열려요
                     </p>
@@ -288,33 +262,32 @@ export default function HomeBody(props: HomeBodyProps) {
                 </div>
               </Card>
               <Button asChild variant="secondary" size="lg" className="w-full">
-                <Link href={`/challenge/${challengeId}/generate`}>
+                <Link href={`/challenge/${challenge.id}/generate`}>
                   내 제출 보기
                 </Link>
               </Button>
             </>
           ) : (
-            /* 미제출 상태 */
             <div className="flex flex-col gap-2.5">
               <Button asChild variant="primary" size="lg" className="w-full">
                 <Link
                   href={
-                    userId
-                      ? `/challenge/${challengeId}/generate`
+                    user
+                      ? `/challenge/${challenge.id}/generate`
                       : "/auth/login"
                   }
                 >
                   프롬프트 만들기
                 </Link>
               </Button>
-              {userId && (
+              {user && (
                 <Button
                   asChild
                   variant="secondary"
                   size="lg"
                   className="w-full"
                 >
-                  <Link href={`/challenge/${challengeId}/generate`}>
+                  <Link href={`/challenge/${challenge.id}/generate`}>
                     내 제출 보기
                   </Link>
                 </Button>
@@ -322,10 +295,8 @@ export default function HomeBody(props: HomeBodyProps) {
             </div>
           )}
 
-          {/* 참여 가이드 — 미제출 시만 */}
-          {!userSubmissionId && (
+          {!user?.submissionId && (
             <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-2 lg:items-start">
-              {/* 참여 가이드 */}
               <Card className="p-4">
                 <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3.5">
                   어떻게 참여하나요?
@@ -370,7 +341,6 @@ export default function HomeBody(props: HomeBodyProps) {
                 </div>
               </Card>
 
-              {/* 코인 보상 */}
               <Card className="p-4">
                 <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3">
                   코인 보상
@@ -407,35 +377,30 @@ export default function HomeBody(props: HomeBodyProps) {
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 내 투표
               </span>
-              {countdownTarget && (
+              {countdown && (
                 <span className="text-xs text-text-muted">
                   투표 마감{" "}
-                  <CountdownTimer targetTime={countdownTarget} label="" /> 남음
+                  <CountdownTimer targetTime={countdown.target} label="" /> 남음
                 </span>
               )}
             </div>
             <div className="flex items-center justify-between">
-              <VoteTokens used={userVoteCount} />
-              <b className="text-sm tabular-nums">{userVoteCount} / 3표</b>
+              <VoteTokens used={user?.voteCount ?? 0} />
+              <b className="text-sm tabular-nums">
+                {user?.voteCount ?? 0} / 3표
+              </b>
             </div>
           </Card>
           <StatsRow
             stats={[
-              { value: String(submissionCount), label: "출품작" },
-              { value: String(totalVotes), label: "누적 투표" },
+              { value: String(stats?.submissions ?? 0), label: "출품작" },
+              { value: String(stats?.totalVotes ?? 0), label: "누적 투표" },
             ]}
           />
-          <UserStatusCard
-            state={state}
-            userId={userId}
-            userSubmissionId={userSubmissionId}
-            userVoteCount={userVoteCount}
-            userRank={userRank}
-            userVotes={userVotes}
-          />
+          <UserStatusCard state={state} user={user} />
           <Button asChild variant="primary" size="lg" className="w-full">
             <Link
-              href={userId ? `/challenge/${challengeId}/vote` : "/auth/login"}
+              href={user ? `/challenge/${challenge.id}/vote` : "/auth/login"}
             >
               투표하러 가기
             </Link>
@@ -475,9 +440,7 @@ export default function HomeBody(props: HomeBodyProps) {
                   >
                     <span className="flex items-center gap-2">
                       <RankBadge rank={entry.rank} />
-                      <span className="text-sm">
-                        익명#{anonLabel(entry.id)}
-                      </span>
+                      <span className="text-sm">익명#{anonLabel(entry.id)}</span>
                     </span>
                     <b className="text-sm tabular-nums">{entry.votes}표</b>
                   </div>
@@ -485,16 +448,9 @@ export default function HomeBody(props: HomeBodyProps) {
               </div>
             </Card>
           )}
-          <UserStatusCard
-            state={state}
-            userId={userId}
-            userSubmissionId={userSubmissionId}
-            userVoteCount={userVoteCount}
-            userRank={userRank}
-            userVotes={userVotes}
-          />
+          <UserStatusCard state={state} user={user} />
           <Button asChild variant="primary" size="lg" className="w-full">
-            <Link href={`/challenge/${challengeId}/results`}>
+            <Link href={`/challenge/${challenge.id}/results`}>
               전체 결과 보기
             </Link>
           </Button>
