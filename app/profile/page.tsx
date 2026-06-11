@@ -135,7 +135,7 @@ export default async function ProfilePage() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">코인 획득 내역</span>
-            <span className="text-xs text-accent">전체 내역 &rsaquo;</span>
+            <Link href="/profile/coins" className="text-xs text-accent no-underline">전체 내역 &rsaquo;</Link>
           </div>
           {!transactions || transactions.length === 0 ? (
             <Card className="p-4 text-center">
