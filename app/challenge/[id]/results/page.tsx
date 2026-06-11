@@ -1,8 +1,8 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
 import Podium from '@/components/Podium'
-import RankBadge from '@/components/RankBadge'
 import CopyLinkButton from './CopyLinkButton'
+import ResultList from './ResultList'
 import { rankSubmissions } from '@/lib/ranking'
 import { Card } from '@/ds/card'
 
@@ -146,19 +146,28 @@ export default async function ResultsPage({ params }: PageProps) {
 
         {winner && (
           <Card className="p-4 border-accent-mid">
-            <div className="flex items-center gap-1.5 text-accent text-[15px] font-semibold mb-2.5">
+            <div className="flex items-center gap-1.5 text-accent text-[15px] font-semibold mb-3">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               우승작
             </div>
-            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
+            {winner.prompt_text && (
+              <div className="mb-3">
+                <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
+                  프롬프트
+                </div>
+                <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
+                  {winner.prompt_text}
+                </p>
+              </div>
+            )}
+            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-1.5">
               ✦ GEMINI 결과물
             </div>
-            <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3 mb-2">
+            <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
               {winner.result_text}
             </p>
-            <p className="text-xs text-text-faint">결과물·프롬프트 전체 보기 →</p>
           </Card>
         )}
 
@@ -171,24 +180,7 @@ export default async function ResultsPage({ params }: PageProps) {
               <p className="text-base text-text-muted">아직 제출된 결과가 없어요.</p>
             </Card>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {rankedSubs.map(sub => (
-                <div
-                  key={sub.id}
-                  className={[
-                    'flex items-center gap-2.5 px-3 py-2.5 border rounded-md bg-bg-card',
-                    sub.isMe ? 'border-accent-mid bg-accent-light' : 'border-border',
-                  ].join(' ')}
-                >
-                  <RankBadge rank={sub.rank} />
-                  <span className="text-sm flex-1 truncate">
-                    익명#{anonLabel(sub.id)}
-                    {sub.isMe && <span className="text-xs text-text-faint"> · 나</span>}
-                  </span>
-                  <b className="text-sm tabular-nums">{sub.final_vote_count}표</b>
-                </div>
-              ))}
-            </div>
+            <ResultList subs={rankedSubs} />
           )}
         </div>
 
