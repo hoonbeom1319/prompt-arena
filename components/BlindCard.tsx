@@ -45,14 +45,7 @@ export default function BlindCard({
 
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted px-2 py-1 bg-bg-base border border-border rounded-full">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
-            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-          작성자·프롬프트 가림
-        </span>
+      <div className="flex items-center justify-end mb-3">
         <span className="text-xs text-text-faint">출품 #{shortId}</span>
       </div>
 
