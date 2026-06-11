@@ -45,23 +45,22 @@ export default function BlindCard({
 
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-end mb-3">
-        <span className="text-xs text-text-faint">출품 #{shortId}</span>
-      </div>
-
       {/* 프롬프트 섹션 — 항상 노출 */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-text-primary">프롬프트 본문</span>
-          {!promptsUnlocked && (
-            <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-              가림
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {!promptsUnlocked && (
+              <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                가림
+              </span>
+            )}
+            <span className="text-xs text-text-faint">출품 #{shortId}</span>
+          </div>
         </div>
 
         {/* 잠금 상태 — 3표 완료 시 슬라이드 아웃 */}
