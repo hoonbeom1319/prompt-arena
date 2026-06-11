@@ -141,7 +141,7 @@ export default function VotePage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="투표" showBack backHref="/" statusLabel="투표 기간" statusVariant="accent" />
 
-      <main className="max-w-[430px] md:max-w-4xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10 flex flex-col gap-3.5">
+      <main className="max-w-[430px] md:max-w-4xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-24 flex flex-col gap-3.5">
         {challenge && (
           <h2 className="hidden md:block text-lg font-bold text-text-primary tracking-tight">
             &ldquo;{challenge.title}&rdquo;
@@ -248,7 +248,7 @@ export default function VotePage() {
 
               {selected && (
                 <Card className="p-5 flex flex-col gap-4">
-                  {/* 프롬프트 본문 — 상단 */}
+                  {/* 프롬프트 본문 */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold text-text-primary">프롬프트 본문</span>
@@ -287,25 +287,33 @@ export default function VotePage() {
                       {selected.result_text}
                     </p>
                   </div>
-
-                  <Button
-                    variant="primary"
-                    className="w-full"
-                    disabled={
-                      myVotes.some(v => v.submissionId === selected.id)
-                      || votesUsed >= MAX_VOTES
-                      || voting
-                    }
-                    onClick={() => handleVote(selected.id)}
-                  >
-                    {myVotes.some(v => v.submissionId === selected.id) ? '✓ 투표됨' : '✓ 이 답변에 투표'}
-                  </Button>
                 </Card>
               )}
             </div>
           </>
         )}
       </main>
+
+      {/* 데스크탑 전용 — fixed 투표 버튼 */}
+      {selected && (
+        <div className="hidden md:block fixed bottom-0 left-0 right-0 z-20 bg-bg-base/95 backdrop-blur-sm border-t border-border">
+          <div className="max-w-4xl mx-auto px-4 py-3 grid grid-cols-[300px_minmax(0,1fr)] gap-4">
+            <div />
+            <Button
+              variant="primary"
+              className="w-full"
+              disabled={
+                myVotes.some(v => v.submissionId === selected.id)
+                || votesUsed >= MAX_VOTES
+                || voting
+              }
+              onClick={() => handleVote(selected.id)}
+            >
+              {myVotes.some(v => v.submissionId === selected.id) ? '✓ 투표됨' : '✓ 이 답변에 투표'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
