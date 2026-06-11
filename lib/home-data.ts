@@ -83,7 +83,8 @@ export async function fetchHomeData(challenge: Challenge | null, userId?: string
   }
 
   if (state === 'voting') {
-    const { count: voteCount } = await supabase
+    const service = await createServiceClient()
+    const { count: voteCount } = await service
       .from('votes')
       .select('*', { count: 'exact', head: true })
       .eq('challenge_id', challenge.id)
