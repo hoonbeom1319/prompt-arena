@@ -12,7 +12,7 @@ import { Card } from '@/ds/card'
 interface Submission {
   id: string
   result_text: string
-  prompt_text?: string
+  prompt_text?: string | null
 }
 
 interface VoteState {
@@ -63,9 +63,10 @@ export default function VotePage() {
       setChallenge(ch)
 
       if (res.ok) {
-        setSubmissions(data.submissions.map((s: { id: string; result_text: string }) => ({
+        setSubmissions(data.submissions.map((s: { id: string; result_text: string; prompt_text?: string | null }) => ({
           id: s.id,
           result_text: s.result_text,
+          prompt_text: s.prompt_text ?? null,
         })))
         setMyVotes(data.votedSubmissionIds.map((sid: string) => ({ submissionId: sid })))
         if (data.revealed) setRevealed(true)
@@ -101,7 +102,18 @@ export default function VotePage() {
     } else {
       const newVotes = [...myVotes, { submissionId }]
       setMyVotes(newVotes)
-      if (newVotes.length >= MAX_VOTES) setRevealed(true)
+      if (newVotes.length >= MAX_VOTES) {
+        setRevealed(true)
+        const revealRes = await fetch(`/api/vote?challengeId=${id}`)
+        const revealData = await revealRes.json()
+        if (revealRes.ok && revealData.revealed) {
+          setSubmissions(revealData.submissions.map((s: { id: string; result_text: string; prompt_text?: string | null }) => ({
+            id: s.id,
+            result_text: s.result_text,
+            prompt_text: s.prompt_text ?? null,
+          })))
+        }
+      }
     }
 
     setVoting(false)
@@ -155,8 +167,10 @@ export default function VotePage() {
             <BlindCard
               key={sub.id}
               submissionId={sub.id}
-              challengeId={id}
               resultText={sub.result_text}
+              promptText={sub.prompt_text}
+              promptsUnlocked={promptsUnlocked}
+              votesUsed={votesUsed}
               hasVoted={myVotes.some(v => v.submissionId === sub.id)}
               canVote={votesUsed < MAX_VOTES}
               voting={voting}
