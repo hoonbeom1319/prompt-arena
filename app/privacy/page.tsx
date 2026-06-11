@@ -10,7 +10,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="개인정보처리방침" showBack backHref="/" />
 
-      <main className="max-w-[430px] mx-auto px-5 pt-6 pb-16">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-5 pt-6 pb-16">
         <p className="text-xs text-text-faint mb-8">시행일: 2026년 6월 11일</p>
 
         <p className="text-sm text-text-secondary leading-[1.8] mb-8">

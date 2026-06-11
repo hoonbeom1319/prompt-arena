@@ -41,7 +41,7 @@ export default async function CoinsPage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="코인 내역" showBack backHref="/profile" />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-4">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10 flex flex-col gap-4">
         <Card className="p-4 flex items-center justify-between">
           <span className="text-sm text-text-muted">보유 코인</span>
           <span className="text-xl font-extrabold text-accent tabular-nums">

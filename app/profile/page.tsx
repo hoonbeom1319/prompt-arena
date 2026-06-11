@@ -54,7 +54,7 @@ export default async function ProfilePage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="내 프로필" rightContent={<LogoutButton />} />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-20 flex flex-col gap-3.5">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-20 md:pb-10 flex flex-col gap-3.5">
         {/* 아바타 + 닉네임 */}
         <Card className="p-4 flex items-center gap-3">
           <div
@@ -91,6 +91,7 @@ export default async function ProfilePage() {
           </Card>
         </div>
 
+        <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-2 lg:items-start">
         {/* 지난 챌린지 */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -153,6 +154,7 @@ export default async function ProfilePage() {
               ))}
             </Card>
           )}
+        </div>
         </div>
       </main>
 

@@ -66,7 +66,7 @@ export default async function ArchivePage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="지난 챌린지" />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-6 pb-20">
+      <main className="max-w-[430px] md:max-w-4xl mx-auto px-4 pt-6 pb-20 md:pb-10">
         <div className="mb-6">
           <p className="text-sm text-text-secondary">지금까지의 모든 챌린지를 확인해보세요</p>
         </div>
@@ -77,7 +77,7 @@ export default async function ArchivePage() {
             <p className="text-base text-text-muted">아직 챌린지가 없어요.</p>
           </Card>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {challengesWithCounts.map(challenge => {
               const href = challenge.state === 'results'
                 ? `/challenge/${challenge.id}/results`
@@ -91,9 +91,9 @@ export default async function ArchivePage() {
                 <Link
                   key={challenge.id}
                   href={href}
-                  className="block no-underline group"
+                  className="block no-underline group h-full"
                 >
-                  <Card className="p-5 transition-shadow group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
+                  <Card className="p-5 h-full transition-shadow group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <Badge variant={STATE_BADGE_VARIANT[challenge.state] ?? 'muted'} className="mb-2">

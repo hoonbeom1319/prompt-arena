@@ -92,7 +92,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-bg-base flex flex-col">
       {/* 헤더 */}
       <header className="h-[52px] flex items-center px-4 border-b border-border bg-bg-card">
-        <div className="w-full max-w-[430px] mx-auto grid grid-cols-[48px_1fr_48px] items-center">
+        <div className="w-full max-w-[430px] md:max-w-none mx-auto grid grid-cols-[48px_1fr_48px] items-center">
           <Link
             href="/"
             className="w-8 h-8 flex items-center justify-center rounded-md text-text-primary hover:bg-bg-base transition-colors no-underline"

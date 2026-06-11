@@ -45,7 +45,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="프롬프트 아레나" statusLabel={statusLabel} statusVariant={statusVariant} />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-20 flex flex-col gap-3.5">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-20 md:pb-10 flex flex-col gap-3.5">
         {currentChallenge && homeData.state ? (
           <HomeBody
             challengeId={currentChallenge.id}

@@ -166,7 +166,7 @@ export default function GeneratePage() {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="프롬프트 만들기" showBack backHref="/" statusLabel="제출 기간" statusVariant="accent" />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-3.5">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10 flex flex-col gap-3.5">
         {/* TopicBanner */}
         <Card className="p-3.5 bg-bg-subtle">
           <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -305,10 +305,10 @@ export default function GeneratePage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
-            className="fixed inset-0 bg-black/45 flex items-end justify-center z-[200] p-4"
+            className="fixed inset-0 bg-black/45 flex items-end md:items-center justify-center z-[200] p-4"
           >
-            <Card className="p-6 max-w-[430px] w-full rounded-t-xl animate-[sheet-up_240ms_var(--ease-spring)]">
-              <div className="w-10 h-1 bg-border-strong rounded-full mx-auto mb-4" />
+            <Card className="p-6 max-w-[430px] w-full rounded-t-xl md:rounded-xl animate-[sheet-up_240ms_var(--ease-spring)]">
+              <div className="w-10 h-1 bg-border-strong rounded-full mx-auto mb-4 md:hidden" />
               <h3 id="confirm-title" className="text-lg font-bold mb-2">제출하면 수정·삭제할 수 없어요</h3>
               <p className="text-sm text-text-secondary mb-5 leading-relaxed">
                 계속할까요? 선택한 결과물로 챌린지에 참여하게 됩니다.

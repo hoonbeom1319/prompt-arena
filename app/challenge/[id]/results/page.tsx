@@ -43,7 +43,7 @@ export default async function ResultsPage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-bg-base">
         <AppBar title="결과 · 순위" showBack backHref="/" statusLabel="결과 발표" statusVariant="accent" />
-        <div className="max-w-[430px] mx-auto px-4 pt-12 text-center">
+        <div className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-12 text-center">
           <p className="text-text-muted">챌린지를 찾을 수 없어요.</p>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default async function ResultsPage({ params }: PageProps) {
     <div className="min-h-screen bg-bg-base">
       <AppBar title="결과 · 순위" showBack backHref="/" statusLabel="결과 발표" statusVariant="accent" />
 
-      <main className="max-w-[430px] mx-auto px-4 pt-4 pb-8 flex flex-col gap-3.5">
+      <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10 flex flex-col gap-3.5">
         <div className="text-center">
           <div className="flex justify-center text-accent mb-1">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">

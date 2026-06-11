@@ -324,7 +324,7 @@ export default function HomeBody(props: HomeBodyProps) {
 
           {/* 참여 가이드 — 미제출 시만 */}
           {!userSubmissionId && (
-            <>
+            <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-2 lg:items-start">
               {/* 참여 가이드 */}
               <Card className="p-4">
                 <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-3.5">
@@ -395,7 +395,7 @@ export default function HomeBody(props: HomeBodyProps) {
                   ))}
                 </div>
               </Card>
-            </>
+            </div>
           )}
         </>
       )}

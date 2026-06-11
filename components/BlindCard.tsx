@@ -36,12 +36,20 @@ export default function BlindCard({
   const [expanded, setExpanded] = useState(false)
   const [fullHeight, setFullHeight] = useState<number | null>(null)
   const textRef = useRef<HTMLParagraphElement>(null)
+  const [promptExpanded, setPromptExpanded] = useState(false)
+  const [promptFullHeight, setPromptFullHeight] = useState<number | null>(null)
+  const promptRef = useRef<HTMLParagraphElement>(null)
 
   useEffect(() => {
     if (textRef.current) setFullHeight(textRef.current.scrollHeight)
   }, [resultText])
 
+  useEffect(() => {
+    if (promptRef.current) setPromptFullHeight(promptRef.current.scrollHeight)
+  }, [promptText, promptsUnlocked])
+
   const isClamped = fullHeight !== null && fullHeight > CLAMP_HEIGHT
+  const isPromptClamped = promptFullHeight !== null && promptFullHeight > CLAMP_HEIGHT
 
   return (
     <Card className="p-4">
@@ -95,7 +103,20 @@ export default function BlindCard({
         >
           <div className="overflow-hidden">
             <div className="p-3 bg-bg-subtle border border-border rounded-lg">
-              <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">{promptText}</p>
+              <div
+                className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                style={{ maxHeight: promptExpanded ? `${promptFullHeight ?? 9999}px` : `${CLAMP_HEIGHT}px` }}
+              >
+                <p ref={promptRef} className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">{promptText}</p>
+              </div>
+              {isPromptClamped && (
+                <button
+                  onClick={() => setPromptExpanded(!promptExpanded)}
+                  className="text-xs text-accent font-medium mt-1 hover:underline"
+                >
+                  {promptExpanded ? '접기' : '전체보기'}
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ const PersonIcon = ({ filled }: { filled: boolean }) => (
   </svg>
 )
 
-const tabs = [
+export const navTabs = [
   {
     href: '/',
     label: '아레나',
@@ -57,11 +57,11 @@ export default function TabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-bg-card border-t border-border z-40"
+      className="fixed bottom-0 inset-x-0 bg-bg-card border-t border-border z-40 md:hidden"
       aria-label="탭 네비게이션"
     >
       <div className="max-w-[430px] mx-auto flex">
-        {tabs.map(({ href, label, Icon, isActive }) => {
+        {navTabs.map(({ href, label, Icon, isActive }) => {
           const active = isActive(pathname)
           return (
             <Link
