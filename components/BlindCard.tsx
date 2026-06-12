@@ -43,12 +43,26 @@ export default function BlindCard({
   const [promptFullHeight, setPromptFullHeight] = useState<number | null>(null)
   const promptRef = useRef<HTMLParagraphElement>(null)
 
+  // 마운트 시 1회 측정은 display:none(데스크탑 md:hidden)·폰트 로딩 중이면 0으로 잰다.
+  // ResizeObserver로 보이게 되거나 크기가 바뀔 때마다 재측정해야 정확하다.
   useEffect(() => {
-    if (textRef.current) setFullHeight(textRef.current.scrollHeight)
+    const el = textRef.current
+    if (!el) return
+    const measure = () => setFullHeight(el.scrollHeight)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [resultText])
 
   useEffect(() => {
-    if (promptRef.current) setPromptFullHeight(promptRef.current.scrollHeight)
+    const el = promptRef.current
+    if (!el) return
+    const measure = () => setPromptFullHeight(el.scrollHeight)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [promptText, promptsUnlocked])
 
   const isClamped = fullHeight !== null && fullHeight > CLAMP_HEIGHT
@@ -115,7 +129,7 @@ export default function BlindCard({
             <div className="p-3 bg-bg-subtle border border-border rounded-lg">
               <div
                 className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                style={{ maxHeight: promptExpanded ? `${promptFullHeight ?? 9999}px` : `${CLAMP_HEIGHT}px` }}
+                style={{ maxHeight: promptExpanded ? (promptFullHeight ? `${promptFullHeight}px` : 'none') : `${CLAMP_HEIGHT}px` }}
               >
                 <p ref={promptRef} className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">{promptText}</p>
               </div>
@@ -138,7 +152,7 @@ export default function BlindCard({
       </div>
       <div
         className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-        style={{ maxHeight: expanded ? `${fullHeight ?? 9999}px` : `${CLAMP_HEIGHT}px` }}
+        style={{ maxHeight: expanded ? (fullHeight ? `${fullHeight}px` : 'none') : `${CLAMP_HEIGHT}px` }}
       >
         <p ref={textRef} className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">
           {resultText}
