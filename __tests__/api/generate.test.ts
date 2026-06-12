@@ -190,27 +190,27 @@ describe('POST /api/generate', () => {
     })
   })
 
-  describe('PRD §4.4 F-3 — 5회 한도 서버 카운트', () => {
-    it('5회 소진 시 → 429 반환', async () => {
+  describe('PRD v1.1 §4.0-A — 3회 한도 서버 카운트', () => {
+    it('3회 소진 시 → 429 반환', async () => {
       mockUser = { id: 'user-1' }
       mockChallenge = challengeAt('submission')
-      mockGenerationCount = 5
+      mockGenerationCount = 3
       const { POST } = await import('../../app/api/generate/route')
-      const res = await POST(makeRequest({ challengeId: 'ch-1', promptText: '6번째 시도' }))
+      const res = await POST(makeRequest({ challengeId: 'ch-1', promptText: '4번째 시도' }))
       expect(res.status).toBe(429)
       const body = await res.json()
-      expect(body.error).toContain('5번')
+      expect(body.error).toContain('3번')
     })
 
-    it('4회 사용 후 시도 → 200 (5번째 허용)', async () => {
+    it('2회 사용 후 시도 → 200 (3번째 허용)', async () => {
       mockUser = { id: 'user-1' }
       mockChallenge = challengeAt('submission')
-      mockGenerationCount = 4
+      mockGenerationCount = 2
       mockGenerationInsertResult = {
-        id: 'gen-5', prompt_text: '5번째', result_text: 'AI text', attempt_number: 5,
+        id: 'gen-3', prompt_text: '3번째', result_text: 'AI text', attempt_number: 3,
       }
       const { POST } = await import('../../app/api/generate/route')
-      const res = await POST(makeRequest({ challengeId: 'ch-1', promptText: '5번째 시도' }))
+      const res = await POST(makeRequest({ challengeId: 'ch-1', promptText: '3번째 시도' }))
       expect(res.status).toBe(200)
     })
 

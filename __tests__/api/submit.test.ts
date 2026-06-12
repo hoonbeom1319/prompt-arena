@@ -8,12 +8,13 @@ import { NextRequest } from 'next/server'
 
 let mockUser: { id: string } | null = null
 let mockChallenge: Record<string, unknown> | null = null
-let mockGeneration: { id: string } | null = null
+let mockGeneration: { id: string; result_text?: string } | null = null
 let mockExistingSubmission: { id: string } | null = null
 let mockSubmissionInsertResult: Record<string, unknown> | null = null
 let mockSubmissionCount = 0
 const mockAwardCoins = vi.fn()
 const mockCheckAndAwardBadge = vi.fn()
+const mockScheduleSubmissionSummary = vi.fn()
 
 vi.mock('@/lib/supabase/server', () => {
   function makeBuilder(resolverFn: () => unknown) {
@@ -118,6 +119,10 @@ vi.mock('@/lib/coins', () => ({
   COIN_AMOUNTS: { SUBMIT_PROMPT: 5, CAST_VOTE: 1, RANK_1: 100, RANK_2: 50, RANK_3: 25 },
 }))
 
+vi.mock('@/lib/summary', () => ({
+  scheduleSubmissionSummary: (...args: unknown[]) => mockScheduleSubmissionSummary(...args),
+}))
+
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({ getAll: () => [], set: () => {} })),
 }))
@@ -165,6 +170,7 @@ describe('POST /api/submit', () => {
     mockAwardCoins.mockResolvedValue(undefined)
     mockCheckAndAwardBadge.mockClear()
     mockCheckAndAwardBadge.mockResolvedValue(undefined)
+    mockScheduleSubmissionSummary.mockClear()
   })
 
   describe('PRD §4.4 F-4 — 인증 필수', () => {
@@ -251,6 +257,32 @@ describe('POST /api/submit', () => {
       const res = await POST(makeRequest({ challengeId: 'ch-1', generationId: 'gen-1' }))
       const body = await res.json()
       expect(body.coinsAwarded).toBe(5)
+    })
+  })
+
+  describe('PRD v1.1 §4.6.4 — 제출 확정 시 AI 중립 요약 생성 트리거', () => {
+    it('정상 제출 시 scheduleSubmissionSummary가 결과물 텍스트와 함께 호출된다', async () => {
+      mockUser = { id: 'user-1' }
+      mockChallenge = challengeInSubmission()
+      mockGeneration = { id: 'gen-1', result_text: '생성된 결과물' }
+      mockExistingSubmission = null
+      mockSubmissionInsertResult = { id: 'sub-1' }
+      mockSubmissionCount = 1
+      const { POST } = await import('../../app/api/submit/route')
+      await POST(makeRequest({ challengeId: 'ch-1', generationId: 'gen-1' }))
+      expect(mockScheduleSubmissionSummary).toHaveBeenCalledWith(
+        expect.anything(), 'sub-1', '생성된 결과물'
+      )
+    })
+
+    it('제출 실패(이미 제출) 시 요약 생성을 트리거하지 않는다', async () => {
+      mockUser = { id: 'user-1' }
+      mockChallenge = challengeInSubmission()
+      mockGeneration = { id: 'gen-1', result_text: '생성된 결과물' }
+      mockExistingSubmission = { id: 'existing-sub' }
+      const { POST } = await import('../../app/api/submit/route')
+      await POST(makeRequest({ challengeId: 'ch-1', generationId: 'gen-1' }))
+      expect(mockScheduleSubmissionSummary).not.toHaveBeenCalled()
     })
   })
 

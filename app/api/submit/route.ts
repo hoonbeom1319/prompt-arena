@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from '@/lib/coins'
+import { scheduleSubmissionSummary } from '@/lib/summary'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     // Check generation belongs to user and challenge
     const { data: generation } = await supabase
       .from('generations')
-      .select('id')
+      .select('id, result_text')
       .eq('id', generationId)
       .eq('user_id', user.id)
       .eq('challenge_id', challengeId)
@@ -78,6 +79,9 @@ export async function POST(request: NextRequest) {
       console.error('Submission insert error:', insertError)
       return NextResponse.json({ error: '제출에 실패했어요.' }, { status: 500 })
     }
+
+    // AI 중립 요약 — 응답 후 생성·저장, 제출 흐름을 막지 않음 (PRD v1.1 4.6.4)
+    scheduleSubmissionSummary(serviceSupabase, submission.id, generation.result_text)
 
     // Award coins
     await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, '프롬프트 제출', challengeId)

@@ -50,6 +50,8 @@ create table if not exists public.submissions (
   challenge_id uuid references public.challenges(id) on delete cascade not null,
   generation_id uuid references public.generations(id) not null,
   submitted_at timestamptz default now() not null,
+  -- AI 중립 요약 (PRD v1.1 4.6.4) — 제출 시 1회 생성. 실패 시 null 허용(우아한 실패)
+  ai_summary text,
   final_vote_count integer,
   final_rank integer,
   is_seed boolean default false not null,

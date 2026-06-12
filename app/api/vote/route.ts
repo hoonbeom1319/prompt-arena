@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import { awardCoins, COIN_AMOUNTS } from '@/lib/coins'
+import { seededShuffle } from '@/lib/shuffle'
 
 const MAX_VOTES = 3
 
@@ -33,11 +34,13 @@ export async function GET(request: NextRequest) {
 
     const { data: subs } = await serviceSupabase
       .from('submissions')
-      .select('id, generations!inner(result_text, prompt_text)')
+      .select('id, ai_summary, generations!inner(result_text, prompt_text)')
       .eq('challenge_id', challengeId)
+      .order('id')
 
-    const submissions = (subs ?? []).map((s: {
+    const mapped = (subs ?? []).map((s: {
       id: string
+      ai_summary: string | null
       generations: { result_text: string; prompt_text: string } | Array<{ result_text: string; prompt_text: string }>
     }) => {
       const gen = Array.isArray(s.generations) ? s.generations[0] : s.generations
@@ -45,8 +48,13 @@ export async function GET(request: NextRequest) {
         id: s.id,
         result_text: gen?.result_text ?? '',
         prompt_text: revealed ? (gen?.prompt_text ?? '') : null,
+        ai_summary: s.ai_summary ?? null,
       }
     })
+
+    // 노출 순서 랜덤화 (PRD v1.1 4.6.1) — 투표자마다 다르게, 같은 투표자는 재조회에도 동일하게.
+    // id 정렬 후 user+challenge 시드로 섞어 순서를 결정적으로 만든다.
+    const submissions = seededShuffle(mapped, `${user.id}:${challengeId}`)
 
     return NextResponse.json({ submissions, votedSubmissionIds, votesUsed: votedSubmissionIds.length, revealed })
   } catch (err) {

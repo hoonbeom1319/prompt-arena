@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { generateWithPrompt } from '@/lib/gemini'
 import { getChallengeState } from '@/lib/challenge-state'
 import { MAX_GENERATIONS } from '@/lib/constants'
+import { scheduleSubmissionSummary } from '@/lib/summary'
 
 const assertAdmin = async () => {
   const supabase = await createClient()
@@ -216,6 +217,9 @@ export async function POST(request: NextRequest) {
       console.error('Seed submission insert error:', subError)
       return NextResponse.json({ error: '시드 제출 저장에 실패했어요.' }, { status: 500 })
     }
+
+    // 시드도 동일하게 AI 중립 요약 생성 — 투표 화면 일관성 (PRD v1.1 A-4)
+    scheduleSubmissionSummary(serviceSupabase, submission.id, resultText)
 
     return NextResponse.json({ submission, generation, nickname: seedUser.nickname }, { status: 201 })
   } catch (err) {

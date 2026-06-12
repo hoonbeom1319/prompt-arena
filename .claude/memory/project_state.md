@@ -1,11 +1,27 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-11 (4차)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-12 (5차, PRD v1.1 반영)
 metadata:
   type: project
 ---
 
-## 현재 상태 (2026-06-11 4차 갱신)
+## 현재 상태 (2026-06-12 5차 갱신)
+
+### ⚠️ 배포 전 필수 — 미적용 DB 마이그레이션
+
+```sql
+ALTER TABLE submissions ADD COLUMN ai_summary text;
+```
+
+투표 API가 `ai_summary`를 select하므로 **이 SQL을 Supabase에 적용한 뒤 push(배포)해야 한다.** 적용 후 이 섹션 삭제.
+
+### PRD v1.1 — 투표 피로도 완화 (2026-06-12 구현)
+
+- **AI 중립 요약 (4.6.4)**: 제출 확정 시 `after()`로 응답 후 1회 생성 → `submissions.ai_summary` 저장. 실패 시 null(우아한 실패 — 요약 없이 표시). 시드 제출도 동일 경로. 시스템 프롬프트에 평가 금지(색인만) 명시 (`lib/gemini.ts generateNeutralSummary`, `lib/summary.ts`)
+- **노출 순서 랜덤화 (4.6.1)**: `lib/shuffle.ts seededShuffle` — `user.id:challengeId` 시드 결정적 셔플. 투표자마다 다르고, 같은 투표자는 재조회에도 순서 고정
+- **"전부 볼 필요 없음" 안내 (4.6.2)**: 투표 화면 내 투표 카드에 문구 추가
+- **표시**: `components/AiSummary.tsx` — 기본 표시·접기 가능, 색인 톤. BlindCard 상단 + 데스크탑 디테일. 데스크탑 목록 프리뷰는 요약 우선
+- 낡은 테스트 정리: generate 5회→3회, finalize 멱등성 가드(.not) 목 보강
 
 ### 완료된 작업 전체
 

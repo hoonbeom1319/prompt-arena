@@ -33,6 +33,31 @@ export async function generateWithPrompt({
   return response.text ?? ''
 }
 
+// AI 중립 요약 (PRD v1.1 4.6.4) — 평가가 아닌 색인.
+// 시스템 프롬프트에 "평가 금지"를 명시해 앵커링(점수·우열 암시로 투표 쏠림)을 차단한다.
+export const generateNeutralSummary = async (resultText: string): Promise<string> => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: resultText,
+    config: {
+      systemInstruction:
+        '너는 평가자가 아니라 색인 작성자다. 주어진 글의 객관적 특징만 묘사하라: '
+        + '무엇을 다뤘는지, 접근·구조, 길이·톤·형식. '
+        + '가치판단·우열·칭찬·비판·점수·추천은 절대 금지다. '
+        + '("잘 썼다", "인상적", "아쉽다" 같은 표현 금지) '
+        + '한국어 1~2문장, 80자 이내로만 답하라. '
+        + '예: "단계별 설명형, 약 300자, 격식체. 여행 일정 구성을 다룸"',
+      temperature: 0.2,
+      maxOutputTokens: 200,
+      thinkingConfig: {
+        thinkingBudget: 0,
+      },
+    },
+  })
+
+  return (response.text ?? '').trim()
+}
+
 export async function generateChallengeDraft(topic: string): Promise<{
   title: string
   instruction: string

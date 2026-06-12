@@ -58,12 +58,17 @@ vi.mock('@/lib/supabase/server', () => {
                     })),
                   }
                 }
-                // submissions list query
-                return {
-                  eq: vi.fn(() => ({
-                    eq: vi.fn(() => Promise.resolve({ data: mockSubmissions, error: null })),
-                  })),
+                // 체인 공용 빌더 — 멱등성 가드(.eq().eq().not().limit())와
+                // 제출 목록(.eq().eq() await)을 모두 지원한다
+                const b: Record<string, unknown> = {
+                  eq: vi.fn(() => b),
+                  not: vi.fn(() => b),
+                  // 가드 쿼리: 아직 확정 전(빈 결과)
+                  limit: vi.fn(() => Promise.resolve({ data: [], error: null })),
+                  then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+                    Promise.resolve({ data: mockSubmissions, error: null }).then(res, rej),
                 }
+                return b
               }),
               update: vi.fn(() => ({
                 eq: vi.fn(() => Promise.resolve({ error: null })),

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import AiSummary from '@/components/AiSummary'
 import AppBar from '@/components/AppBar'
 import BlindCard from '@/components/BlindCard'
 import VoteTokens from '@/components/VoteTokens'
@@ -15,6 +16,7 @@ interface Submission {
   id: string
   result_text: string
   prompt_text?: string | null
+  ai_summary?: string | null
 }
 
 interface VoteState {
@@ -66,10 +68,11 @@ export default function VotePage() {
       setChallenge(ch)
 
       if (res.ok) {
-        setSubmissions(data.submissions.map((s: { id: string; result_text: string; prompt_text?: string | null }) => ({
+        setSubmissions(data.submissions.map((s: Submission) => ({
           id: s.id,
           result_text: s.result_text,
           prompt_text: s.prompt_text ?? null,
+          ai_summary: s.ai_summary ?? null,
         })))
         setMyVotes(data.votedSubmissionIds.map((sid: string) => ({ submissionId: sid })))
         if (data.revealed) setRevealed(true)
@@ -110,10 +113,11 @@ export default function VotePage() {
         const revealRes = await fetch(`/api/vote?challengeId=${id}`)
         const revealData = await revealRes.json()
         if (revealRes.ok && revealData.revealed) {
-          setSubmissions(revealData.submissions.map((s: { id: string; result_text: string; prompt_text?: string | null }) => ({
+          setSubmissions(revealData.submissions.map((s: Submission) => ({
             id: s.id,
             result_text: s.result_text,
             prompt_text: s.prompt_text ?? null,
+            ai_summary: s.ai_summary ?? null,
           })))
         }
       }
@@ -160,6 +164,12 @@ export default function VotePage() {
               ? '✓ 3표 완료 — 전체 프롬프트 열람이 해제됐어요'
               : '3표를 모두 쓰면 전체 프롬프트가 공개돼요'}
           </p>
+          {!promptsUnlocked && (
+            // 투표 피로도 완화 (PRD v1.1 4.6.2) — "전부 정독해야 할 것 같은 압박" 제거
+            <p className="text-xs text-text-muted mt-0.5">
+              마음에 드는 것에만 투표하세요. 전부 볼 필요 없어요.
+            </p>
+          )}
         </Card>
 
         {error && (
@@ -181,6 +191,7 @@ export default function VotePage() {
                   key={sub.id}
                   submissionId={sub.id}
                   resultText={sub.result_text}
+                  aiSummary={sub.ai_summary}
                   promptText={sub.prompt_text}
                   promptsUnlocked={promptsUnlocked}
                   votesUsed={votesUsed}
@@ -226,8 +237,9 @@ export default function VotePage() {
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <span className={cn('flex-1 min-w-0', hasVoted && 'pr-4')}>
+                        {/* 색인 용도라 요약이 있으면 결과물 대신 요약으로 훑게 한다 (PRD v1.1 4.6.4) */}
                         <span className="line-clamp-2 text-sm text-text-primary leading-snug">
-                          {sub.result_text}
+                          {sub.ai_summary || sub.result_text}
                         </span>
                       </span>
                       {hasVoted && (
@@ -248,6 +260,9 @@ export default function VotePage() {
 
               {selected && (
                 <Card className="p-5 flex flex-col gap-4">
+                  {/* AI 중립 요약 — 기본 표시, 접기 가능 */}
+                  {selected.ai_summary && <AiSummary key={selected.id} summary={selected.ai_summary} />}
+
                   {/* 프롬프트 본문 */}
                   <div>
                     <div className="flex items-center justify-between mb-2">

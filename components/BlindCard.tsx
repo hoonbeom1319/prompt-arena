@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import AiSummary from '@/components/AiSummary'
 import { Button } from '@/ds/button'
 import { Card } from '@/ds/card'
 import { cn } from '@/lib/utils'
@@ -9,6 +10,7 @@ import { MAX_VOTES } from '@/lib/constants'
 interface BlindCardProps {
   submissionId: string
   resultText: string
+  aiSummary?: string | null
   promptText?: string | null
   promptsUnlocked: boolean
   votesUsed: number
@@ -24,6 +26,7 @@ const CLAMP_HEIGHT = 120
 export default function BlindCard({
   submissionId,
   resultText,
+  aiSummary,
   promptText,
   promptsUnlocked,
   votesUsed,
@@ -53,6 +56,13 @@ export default function BlindCard({
 
   return (
     <Card className="p-4">
+      {/* AI 중립 요약 — 기본 표시, 접기 가능. 없으면(생성 실패) 결과물만 표시 */}
+      {aiSummary && (
+        <div className="mb-3">
+          <AiSummary summary={aiSummary} />
+        </div>
+      )}
+
       {/* 프롬프트 섹션 — 항상 노출 */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-2">
