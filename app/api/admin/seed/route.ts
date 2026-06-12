@@ -219,7 +219,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 시드도 동일하게 AI 중립 요약 생성 — 투표 화면 일관성 (PRD v1.1 A-4)
-    scheduleSubmissionSummary(serviceSupabase, submission.id, resultText)
+    scheduleSubmissionSummary(serviceSupabase, submission.id, resultText, {
+      title: challenge.title,
+      instruction: challenge.instruction,
+    })
 
     return NextResponse.json({ submission, generation, nickname: seedUser.nickname }, { status: 201 })
   } catch (err) {

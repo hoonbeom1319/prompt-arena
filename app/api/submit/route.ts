@@ -81,7 +81,11 @@ export async function POST(request: NextRequest) {
     }
 
     // AI 중립 요약 — 응답 후 생성·저장, 제출 흐름을 막지 않음 (PRD v1.1 4.6.4)
-    scheduleSubmissionSummary(serviceSupabase, submission.id, generation.result_text)
+    // 주제는 참고 맥락 — 주제 내 접근 각도를 색인하기 위함 (적합성 판단은 프롬프트에서 금지)
+    scheduleSubmissionSummary(serviceSupabase, submission.id, generation.result_text, {
+      title: challenge.title,
+      instruction: challenge.instruction,
+    })
 
     // Award coins
     await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, '프롬프트 제출', challengeId)

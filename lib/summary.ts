@@ -9,10 +9,11 @@ export const scheduleSubmissionSummary = (
   supabase: SupabaseClient,
   submissionId: string,
   resultText: string,
+  topic?: { title: string; instruction: string } | null,
 ) => {
   const run = async () => {
     try {
-      const summary = await generateNeutralSummary(resultText)
+      const summary = await generateNeutralSummary(resultText, topic)
       if (!summary) return
 
       const { error } = await supabase

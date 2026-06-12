@@ -139,6 +139,8 @@ function challengeInSubmission() {
   const now = Date.now()
   return {
     id: 'ch-1',
+    title: '여행 일정 챌린지',
+    instruction: '3박 4일 여행 일정을 짜는 프롬프트를 작성하세요.',
     submission_start_at: new Date(now - 3600000).toISOString(),
     submission_end_at: new Date(now + 3600000).toISOString(),
     voting_start_at: new Date(now + 7200000).toISOString(),
@@ -261,7 +263,7 @@ describe('POST /api/submit', () => {
   })
 
   describe('PRD v1.1 §4.6.4 — 제출 확정 시 AI 중립 요약 생성 트리거', () => {
-    it('정상 제출 시 scheduleSubmissionSummary가 결과물 텍스트와 함께 호출된다', async () => {
+    it('정상 제출 시 scheduleSubmissionSummary가 결과물 텍스트·챌린지 주제와 함께 호출된다', async () => {
       mockUser = { id: 'user-1' }
       mockChallenge = challengeInSubmission()
       mockGeneration = { id: 'gen-1', result_text: '생성된 결과물' }
@@ -271,7 +273,8 @@ describe('POST /api/submit', () => {
       const { POST } = await import('../../app/api/submit/route')
       await POST(makeRequest({ challengeId: 'ch-1', generationId: 'gen-1' }))
       expect(mockScheduleSubmissionSummary).toHaveBeenCalledWith(
-        expect.anything(), 'sub-1', '생성된 결과물'
+        expect.anything(), 'sub-1', '생성된 결과물',
+        { title: '여행 일정 챌린지', instruction: '3박 4일 여행 일정을 짜는 프롬프트를 작성하세요.' }
       )
     })
 
