@@ -18,6 +18,7 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
 ### PRD v1.1 — 투표 피로도 완화 (2026-06-12 구현)
 
 - **AI 중립 요약 (4.6.4)**: 제출 확정 시 `after()`로 응답 후 1회 생성 → `submissions.ai_summary` 저장. 실패 시 null(우아한 실패 — 요약 없이 표시). 시드 제출도 동일 경로. 시스템 프롬프트에 평가 금지(색인만) 명시 (`lib/gemini.ts generateNeutralSummary`, `lib/summary.ts`)
+  - (2026-06-12 보강) 챌린지 주제(title+instruction)를 참고 맥락으로 전달 — 주제 내 접근 각도를 색인. 단 주제 적합성·충실도 판단은 우열 암시라 프롬프트에서 명시 금지. 기존 저장된 요약(주제 없이 생성)은 재생성 안 함
 - **노출 순서 랜덤화 (4.6.1)**: `lib/shuffle.ts seededShuffle` — `user.id:challengeId` 시드 결정적 셔플. 투표자마다 다르고, 같은 투표자는 재조회에도 순서 고정
 - **"전부 볼 필요 없음" 안내 (4.6.2)**: 투표 화면 내 투표 카드에 문구 추가
 - **표시**: `components/AiSummary.tsx` — 기본 표시·접기 가능, 색인 톤. BlindCard 상단 + 데스크탑 디테일. 데스크탑 목록 프리뷰는 요약 우선
