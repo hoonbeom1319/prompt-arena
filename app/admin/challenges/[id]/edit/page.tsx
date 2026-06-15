@@ -9,18 +9,17 @@ import { Card } from '@/ds/card'
 import { createClient } from '@/lib/supabase/client'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-const pad = (n: number) => String(n).padStart(2, '0')
 const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
 const addDays = (date: string, n: number) => {
   const d = new Date(`${date}T00:00:00`)
   d.setDate(d.getDate() + n)
   return d
 }
-// ISO(UTC) → 로컬 날짜 YYYY-MM-DD (제출 시작 시각의 날짜)
-const isoToLocalDate = (iso: string) => {
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
+// ISO(UTC) → KST 달력 날짜 YYYY-MM-DD (제출 시작 시각의 KST 날짜).
+// 저장이 KST 자정 기준(deriveTwoDayISO)이라, 표시도 브라우저 타임존이 아닌
+// KST로 못박아야 제출일이 그대로 왕복된다. sv-SE 로케일은 'YYYY-MM-DD HH:mm:ss' 포맷.
+const isoToKstDate = (iso: string) =>
+  new Date(iso).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 10)
 
 export default function EditChallengePage() {
   const router = useRouter()
@@ -58,7 +57,7 @@ export default function EditChallengePage() {
           model_name: data.model_name ?? 'gemini-2.5-flash',
           temperature: String(data.temperature ?? 0.7),
           wrapper_text: data.wrapper_text ?? '',
-          submission_date: isoToLocalDate(data.submission_start_at),
+          submission_date: isoToKstDate(data.submission_start_at),
         })
         setPageLoading(false)
       })
