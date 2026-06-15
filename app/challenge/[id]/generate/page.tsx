@@ -204,6 +204,16 @@ export default function GeneratePage() {
                 </span>
                 {activeGen.id === generations[0]?.id && <Badge variant="accent">최신</Badge>}
               </div>
+              {activeGen.prompt_text && (
+                <div className="mb-3">
+                  <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
+                    내가 보낸 프롬프트
+                  </div>
+                  <p className="text-sm text-text-secondary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
+                    {activeGen.prompt_text}
+                  </p>
+                </div>
+              )}
               <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
                 ✦ GEMINI 결과물
               </div>
@@ -256,7 +266,7 @@ export default function GeneratePage() {
               <Textarea
                 value={promptText}
                 onChange={e => setPromptText(e.target.value)}
-                placeholder={locked ? '5회를 모두 사용해 생성이 잠겼어요' : '프롬프트를 입력하세요…'}
+                placeholder={locked ? `${MAX_GENERATIONS}회를 모두 사용해 생성이 잠겼어요` : '프롬프트를 입력하세요…'}
                 disabled={loading || locked}
                 rows={4}
                 aria-label="프롬프트 입력"
@@ -268,7 +278,7 @@ export default function GeneratePage() {
                 disabled={loading || !promptText.trim() || locked}
                 className="w-full"
               >
-                {locked ? '생성 잠금 (5/5)' : loading ? '실행 중...' : '⚡ 실행 (Gemini)'}
+                {locked ? `생성 잠금 (${MAX_GENERATIONS}/${MAX_GENERATIONS})` : loading ? '실행 중...' : '⚡ 실행 (Gemini)'}
               </Button>
             </Card>
 

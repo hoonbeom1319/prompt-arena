@@ -1,6 +1,6 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-12 (5차, PRD v1.1 반영)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-15 (TO-DO 4건 처리)
 metadata:
   type: project
 ---
@@ -14,6 +14,14 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
 ```
 
 투표 API가 `ai_summary`를 select하므로 **이 SQL을 Supabase에 적용한 뒤 push(배포)해야 한다.** 적용 후 이 섹션 삭제.
+
+### TO-DO 처리 (2026-06-15) — `docs/TO-DO/TO-DO.md` 4건
+
+- **#1 프롬프트 보이기**: 생성 화면(`generate/page.tsx`) 활성 결과물 카드에 "내가 보낸 프롬프트" 블록 추가 — 제출 기간에 내가 보낸 프롬프트를 결과물과 함께 노출
+- **#2 제출 API 속도(7.5s→대폭 단축)**: `app/api/submit/route.ts` — 챌린지·생성물·중복확인 3조회를 `Promise.all` 병렬화, 코인·뱃지(보상)는 `after()`로 응답 후 처리(왕복 ~10→~4). 부수효과로 코인 적립 실패가 더 이상 제출 응답을 500으로 만들지 않음(우아한 실패). 모든 service-client 조회로 통일
+- **#3 집계 전 투표상황 노출 버그**: `results/page.tsx`에서 `getChallengeState`로 게이팅 — `state !== 'results'`(투표 중 등)이면 "아직 결과가 공개되지 않았어요" 화면. 프로필>지난 챌린지의 "집계 전" 항목 링크로 진행 중 순위·득표를 미리 보던 누수 차단. `getChallengeState`/`getNextTransition` 파라미터를 `ChallengeTiming`(기간 4필드 Pick)으로 좁힘
+- **#4 제출 횟수 문구 5→3**: generate 화면 placeholder·잠금 버튼이 `MAX_GENERATIONS` 사용("생성 잠금 (3/3)"). (앱 코드의 5회 잔재는 여기뿐이었음 — 나머지는 PRD 문서)
+- 검증: vitest 69 passing(submit 테스트 목 재작성 — 병렬조회·after 폴백 반영), Playwright `tests/todo-generate-ui.spec.ts` 2 passing(#1·#4 실화면). e2e helper 쿠키 버그 수정(Playwright 1.60: url+path 동시 금지 → domain+path). 결과 페이지(#3)·제출 속도(#2)는 서버 컴포넌트/라우트라 실DB 없이 e2e 불가 → vitest로 커버. **e2e 실행엔 `.env.local` 필요**
 
 ### PRD v1.1 — 투표 피로도 완화 (2026-06-12 구현)
 

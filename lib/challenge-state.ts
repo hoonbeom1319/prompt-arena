@@ -18,7 +18,14 @@ export interface Challenge {
   created_at: string
 }
 
-export function getChallengeState(challenge: Challenge, now?: Date): ChallengeState {
+// 상태 판정에 필요한 건 기간 4필드뿐이다 — 전체 Challenge가 아니라 부분만 받아
+// 결과 페이지처럼 필요한 컬럼만 select한 객체도 그대로 넘길 수 있게 한다.
+export type ChallengeTiming = Pick<
+  Challenge,
+  'submission_start_at' | 'submission_end_at' | 'voting_start_at' | 'voting_end_at'
+>
+
+export function getChallengeState(challenge: ChallengeTiming, now?: Date): ChallengeState {
   const current = now ?? new Date()
   const submissionStart = new Date(challenge.submission_start_at)
   const submissionEnd = new Date(challenge.submission_end_at)
@@ -66,7 +73,7 @@ export function getStateColor(state: ChallengeState): string {
   }
 }
 
-export function getNextTransition(challenge: Challenge, now?: Date): { label: string; time: Date } | null {
+export function getNextTransition(challenge: ChallengeTiming, now?: Date): { label: string; time: Date } | null {
   const current = now ?? new Date()
   const state = getChallengeState(challenge, current)
 

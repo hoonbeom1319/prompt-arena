@@ -1,9 +1,11 @@
+import Link from 'next/link'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
 import Podium from '@/components/Podium'
 import CopyLinkButton from './CopyLinkButton'
 import ResultList from './ResultList'
 import { rankSubmissions } from '@/lib/ranking'
+import { getChallengeState } from '@/lib/challenge-state'
 import { Card } from '@/ds/card'
 
 interface PageProps {
@@ -36,7 +38,7 @@ export default async function ResultsPage({ params }: PageProps) {
 
   const { data: challenge } = await service
     .from('challenges')
-    .select('id, title, instruction')
+    .select('id, title, instruction, submission_start_at, submission_end_at, voting_start_at, voting_end_at')
     .eq('id', id)
     .single()
 
@@ -47,6 +49,37 @@ export default async function ResultsPage({ params }: PageProps) {
         <div className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-12 text-center">
           <p className="text-text-muted">챌린지를 찾을 수 없어요.</p>
         </div>
+      </div>
+    )
+  }
+
+  // 결과는 투표 마감 이후에만 공개한다. 투표 진행 중에 결과 페이지로 들어와
+  // 집계 중인 순위·득표를 미리 보는 것을 막는다 (간접적 투표 상황 노출 방지).
+  const state = getChallengeState(challenge)
+  if (state !== 'results') {
+    const isVoting = state === 'voting'
+    return (
+      <div className="min-h-screen bg-bg-base">
+        <AppBar title="결과 · 순위" showBack backHref="/" statusLabel="결과 발표" statusVariant="accent" />
+        <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10">
+          <Card className="p-10 text-center">
+            <div className="text-4xl mb-3" aria-hidden="true">🗳️</div>
+            <h2 className="text-lg font-bold text-text-primary mb-1.5">아직 결과가 공개되지 않았어요</h2>
+            <p className="text-sm text-text-muted leading-relaxed">
+              {isVoting
+                ? '투표가 진행 중이에요. 결과는 투표가 마감된 뒤에 공개돼요.'
+                : '결과는 투표가 마감된 뒤에 공개돼요.'}
+            </p>
+            {isVoting && (
+              <Link
+                href={`/challenge/${id}/vote`}
+                className="inline-block mt-5 px-4 py-2 rounded-md bg-accent text-white text-sm font-semibold no-underline"
+              >
+                투표하러 가기
+              </Link>
+            )}
+          </Card>
+        </main>
       </div>
     )
   }

@@ -69,11 +69,12 @@ export async function setupAuth(page: Page, user = MOCK_USER) {
   const storageKey = getStorageKey()
 
   // Set the session cookie so auth-js finds a valid session in cookie storage
+  // Playwright 1.60: 쿠키에 url과 path를 동시에 줄 수 없다 — domain+path로 지정한다.
   await page.context().addCookies([
     {
       name: storageKey,
       value: makeSession(user),
-      url: 'http://localhost:3000',
+      domain: 'localhost',
       path: '/',
       httpOnly: false,
       secure: false,

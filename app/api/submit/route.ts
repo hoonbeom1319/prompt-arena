@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { after } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from '@/lib/coins'
@@ -7,6 +8,7 @@ import { scheduleSubmissionSummary } from '@/lib/summary'
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const serviceSupabase = await createServiceClient()
 
     // Auth check
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -20,13 +22,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '챌린지 ID와 생성 ID가 필요해요.' }, { status: 400 })
     }
 
-    // Get challenge
-    const { data: challenge } = await supabase
-      .from('challenges')
-      .select('*')
-      .eq('id', challengeId)
-      .single()
+    // 서로 의존 없는 조회는 병렬로 — 챌린지·생성물 검증·중복 제출 확인을
+    // 순차 왕복으로 쌓으면 제출 응답이 그만큼 느려진다.
+    const [challengeRes, generationRes, existingRes] = await Promise.all([
+      serviceSupabase.from('challenges').select('*').eq('id', challengeId).single(),
+      serviceSupabase
+        .from('generations')
+        .select('id, result_text')
+        .eq('id', generationId)
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId)
+        .single(),
+      serviceSupabase
+        .from('submissions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId)
+        .maybeSingle(),
+    ])
 
+    const challenge = challengeRes.data
     if (!challenge) {
       return NextResponse.json({ error: '챌린지를 찾을 수 없어요.' }, { status: 404 })
     }
@@ -38,33 +53,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check generation belongs to user and challenge
-    const { data: generation } = await supabase
-      .from('generations')
-      .select('id, result_text')
-      .eq('id', generationId)
-      .eq('user_id', user.id)
-      .eq('challenge_id', challengeId)
-      .single()
-
+    const generation = generationRes.data
     if (!generation) {
       return NextResponse.json({ error: '유효하지 않은 생성 결과예요.' }, { status: 400 })
     }
 
-    const serviceSupabase = await createServiceClient()
-
     // Check no existing submission
-    const { data: existing } = await serviceSupabase
-      .from('submissions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('challenge_id', challengeId)
-      .single()
-
-    if (existing) {
+    if (existingRes.data) {
       return NextResponse.json({ error: '이미 이 챌린지에 제출했어요.' }, { status: 409 })
     }
 
-    // Insert submission
+    // Insert submission — 제출 자체가 핵심 행동이라 이것만 응답 전에 보장한다.
     const { data: submission, error: insertError } = await serviceSupabase
       .from('submissions')
       .insert({
@@ -87,22 +86,33 @@ export async function POST(request: NextRequest) {
       instruction: challenge.instruction,
     })
 
-    // Award coins
-    await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, '프롬프트 제출', challengeId)
+    // 코인·뱃지는 보상(부수 효과)이라 제출 응답을 막지 않는다 — 응답 후 처리하고,
+    // 실패해도 제출은 유효하다(우아한 실패). 이로써 제출 응답의 왕복 수를 크게 줄인다.
+    const rewardAfterSubmit = async () => {
+      try {
+        await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, '프롬프트 제출', challengeId)
 
-    // Check first submission badge
-    const { count: submissionCount } = await serviceSupabase
-      .from('submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+        const { count: submissionCount } = await serviceSupabase
+          .from('submissions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
 
-    if (submissionCount === 1) {
-      await checkAndAwardBadge(serviceSupabase, user.id, 'first_submission')
+        if (submissionCount === 1) {
+          await checkAndAwardBadge(serviceSupabase, user.id, 'first_submission')
+        }
+        if ((submissionCount ?? 0) >= 10) {
+          await checkAndAwardBadge(serviceSupabase, user.id, 'participation_10')
+        }
+      } catch (err) {
+        console.error('Submit reward error:', err)
+      }
     }
 
-    // Check participation_10 badge
-    if ((submissionCount ?? 0) >= 10) {
-      await checkAndAwardBadge(serviceSupabase, user.id, 'participation_10')
+    try {
+      after(rewardAfterSubmit)
+    } catch {
+      // after는 요청 스코프 밖(단위 테스트 등)에서 던질 수 있다 — 직접 실행으로 폴백
+      await rewardAfterSubmit()
     }
 
     return NextResponse.json({ submission, coinsAwarded: COIN_AMOUNTS.SUBMIT_PROMPT })

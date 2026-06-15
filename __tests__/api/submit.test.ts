@@ -16,100 +16,99 @@ const mockAwardCoins = vi.fn()
 const mockCheckAndAwardBadge = vi.fn()
 const mockScheduleSubmissionSummary = vi.fn()
 
+// 라우트는 코인·뱃지를 after()로 응답 후 처리한다. 테스트(요청 스코프 밖)에서는
+// after가 던지게 해 라우트의 동기 폴백(await reward)을 타도록 강제 — 보상 호출을 결정적으로 검증.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return {
+    ...actual,
+    after: () => { throw new Error('after() outside request scope (test)') },
+  }
+})
+
 vi.mock('@/lib/supabase/server', () => {
-  function makeBuilder(resolverFn: () => unknown) {
+  // 종단(single/maybeSingle/await)에서 해당 mock 데이터를 돌려주는 테이블별 빌더.
+  // 챌린지·생성물·중복확인 조회는 라우트에서 service client로 병렬 실행된다.
+  function challengeBuilder() {
     const b: Record<string, unknown> = {
       select: vi.fn(() => b),
       eq: vi.fn(() => b),
-      single: vi.fn(() => resolverFn()),
-      insert: vi.fn(() => makeInsertBuilder()),
-      then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
-        Promise.resolve(resolverFn()).then(res, rej),
-    }
-    return b
-  }
-
-  function makeInsertBuilder() {
-    const b: Record<string, unknown> = {
-      select: vi.fn(() => b),
       single: vi.fn(() => Promise.resolve(
-        mockSubmissionInsertResult
-          ? { data: mockSubmissionInsertResult, error: null }
-          : { data: null, error: new Error('insert failed') }
+        mockChallenge ? { data: mockChallenge, error: null } : { data: null, error: null }
       )),
     }
     return b
   }
 
+  function generationBuilder() {
+    const b: Record<string, unknown> = {
+      select: vi.fn(() => b),
+      eq: vi.fn(() => b),
+      single: vi.fn(() => Promise.resolve(
+        mockGeneration ? { data: mockGeneration, error: null } : { data: null, error: null }
+      )),
+    }
+    return b
+  }
+
+  function submissionsBuilder() {
+    let isCount = false
+    const b: Record<string, unknown> = {
+      select: vi.fn((_f?: unknown, opts?: { count?: string }) => {
+        if (opts?.count) isCount = true
+        return b
+      }),
+      eq: vi.fn(() => b),
+      maybeSingle: vi.fn(() => Promise.resolve(
+        mockExistingSubmission
+          ? { data: mockExistingSubmission, error: null }
+          : { data: null, error: null }
+      )),
+      insert: vi.fn(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve(
+            mockSubmissionInsertResult
+              ? { data: mockSubmissionInsertResult, error: null }
+              : { data: null, error: new Error('insert failed') }
+          )),
+        })),
+      })),
+      // count 쿼리는 .select(..,{count}).eq()로 끝나고 그대로 await된다 — thenable로 처리
+      then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+        Promise.resolve(
+          isCount ? { count: mockSubmissionCount, error: null } : { data: null, error: null }
+        ).then(res, rej),
+    }
+    return b
+  }
+
+  const serviceFrom = vi.fn((table: string) => {
+    if (table === 'challenges') return challengeBuilder()
+    if (table === 'generations') return generationBuilder()
+    if (table === 'submissions') return submissionsBuilder()
+    const b: Record<string, unknown> = {
+      select: vi.fn(() => b),
+      eq: vi.fn(() => b),
+      single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+        Promise.resolve({ data: null, error: null }).then(res, rej),
+    }
+    return b
+  })
+
   return {
     createClient: vi.fn(async () => ({
       auth: { getUser: vi.fn(async () => ({ data: { user: mockUser }, error: null })) },
-      from: vi.fn((table: string) => {
-        if (table === 'challenges') {
-          return makeBuilder(() => Promise.resolve(
-            mockChallenge ? { data: mockChallenge, error: null } : { data: null, error: null }
-          ))
+      from: vi.fn(() => {
+        const b: Record<string, unknown> = {
+          select: vi.fn(() => b),
+          eq: vi.fn(() => b),
+          single: vi.fn(() => Promise.resolve({ data: null, error: null })),
         }
-        if (table === 'generations') {
-          return makeBuilder(() => Promise.resolve(
-            mockGeneration ? { data: mockGeneration, error: null } : { data: null, error: null }
-          ))
-        }
-        return makeBuilder(() => Promise.resolve({ data: null, error: null }))
+        return b
       }),
     })),
-    createServiceClient: vi.fn(async () => {
-      // Track call order: 1=check-existing, 2=insert, 3=count-submissions
-      let fromCallCount = 0
-
-      return {
-        from: vi.fn((_table: string) => {
-          fromCallCount++
-          const callIdx = fromCallCount
-
-          if (callIdx === 1) {
-            // Check existing submission: .select().eq().eq().single()
-            const b: Record<string, unknown> = {
-              select: vi.fn(() => b),
-              eq: vi.fn(() => b),
-              single: vi.fn(() => Promise.resolve(
-                mockExistingSubmission
-                  ? { data: mockExistingSubmission, error: null }
-                  : { data: null, error: { code: 'PGRST116' } }
-              )),
-            }
-            return b
-          }
-
-          if (callIdx === 2) {
-            // Insert submission: .insert().select().single()
-            return {
-              insert: vi.fn(() => ({
-                select: vi.fn(() => ({
-                  single: vi.fn(() => Promise.resolve(
-                    mockSubmissionInsertResult
-                      ? { data: mockSubmissionInsertResult, error: null }
-                      : { data: null, error: new Error('insert failed') }
-                  )),
-                })),
-              })),
-            }
-          }
-
-          // callIdx >= 3: count queries — .select('*', {count}).eq()
-          return {
-            select: vi.fn((_f: unknown, opts?: { count?: string }) => {
-              if (opts?.count) {
-                return {
-                  eq: vi.fn(() => ({ count: mockSubmissionCount, error: null })),
-                }
-              }
-              return { eq: vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ data: [], error: null })) })) }
-            }),
-          }
-        }),
-      }
-    }),
+    createServiceClient: vi.fn(async () => ({ from: serviceFrom })),
   }
 })
 
