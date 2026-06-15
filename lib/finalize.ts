@@ -34,13 +34,18 @@ export async function finalizeChallenge(
     return { skipped: false, finalizedCount: 0 }
   }
 
+  // 득표 집계 — 제출물마다 count 쿼리를 돌리면 N+1이라, 챌린지 전체 표를
+  // 한 번에 가져와 메모리에서 제출물별로 합산한다 (시드 제출 득표는 무시).
   const voteCounts: Record<string, number> = {}
-  for (const sub of submissions) {
-    const { count } = await serviceSupabase
-      .from('votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('submission_id', sub.id)
-    voteCounts[sub.id] = count ?? 0
+  for (const sub of submissions) voteCounts[sub.id] = 0
+
+  const { data: voteRows } = await serviceSupabase
+    .from('votes')
+    .select('submission_id')
+    .eq('challenge_id', challengeId)
+
+  for (const v of (voteRows ?? []) as Array<{ submission_id: string }>) {
+    if (voteCounts[v.submission_id] !== undefined) voteCounts[v.submission_id] += 1
   }
 
   type SubmissionRow = {

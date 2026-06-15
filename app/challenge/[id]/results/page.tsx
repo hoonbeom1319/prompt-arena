@@ -120,11 +120,18 @@ export default async function ResultsPage({ params }: PageProps) {
       .eq('challenge_id', id)
 
     if (allSubs) {
-      const subIds = allSubs.map(s => s.id)
+      // 득표 집계 — 제출물마다 count 쿼리를 돌리면 N+1이라, 챌린지 전체 표를
+      // 한 번에 가져와 메모리에서 제출물별로 합산한다.
       const voteCounts: Record<string, number> = {}
-      for (const subId of subIds) {
-        const { count } = await service.from('votes').select('*', { count: 'exact', head: true }).eq('submission_id', subId)
-        voteCounts[subId] = count ?? 0
+      for (const sub of allSubs) voteCounts[sub.id] = 0
+
+      const { data: voteRows } = await service
+        .from('votes')
+        .select('submission_id')
+        .eq('challenge_id', id)
+
+      for (const v of (voteRows ?? []) as Array<{ submission_id: string }>) {
+        if (voteCounts[v.submission_id] !== undefined) voteCounts[v.submission_id] += 1
       }
 
       const userIds = allSubs.map(s => s.user_id)

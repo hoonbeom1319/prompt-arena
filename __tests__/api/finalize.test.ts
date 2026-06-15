@@ -43,8 +43,6 @@ vi.mock('@/lib/supabase/server', () => {
       }),
     })),
     createServiceClient: vi.fn(async () => {
-      let submissionCallCount = 0
-
       return {
         from: vi.fn((table: string) => {
           if (table === 'submissions') {
@@ -78,21 +76,16 @@ vi.mock('@/lib/supabase/server', () => {
 
           if (table === 'votes') {
             return {
-              select: vi.fn((_f: unknown, opts?: { count?: string }) => {
-                if (opts?.count) {
-                  // per-submission vote count
-                  return {
-                    eq: vi.fn(() => ({
-                      then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) => {
-                        const subId = mockSubmissions[submissionCallCount]?.id ?? 'unknown'
-                        const count = mockVoteCounts[subId] ?? 0
-                        submissionCallCount++
-                        return Promise.resolve({ count, error: null }).then(res, rej)
-                      },
-                    })),
+              select: vi.fn((field: unknown) => {
+                // 단일 쿼리로 챌린지 전체 표를 가져와 JS에서 집계 (N+1 제거)
+                if (field === 'submission_id') {
+                  const rows: Array<{ submission_id: string }> = []
+                  for (const [subId, n] of Object.entries(mockVoteCounts)) {
+                    for (let i = 0; i < n; i++) rows.push({ submission_id: subId })
                   }
+                  return { eq: vi.fn(() => Promise.resolve({ data: rows, error: null })) }
                 }
-                // voters list
+                // voters list (user_id) 등
                 return {
                   eq: vi.fn(() => Promise.resolve({ data: [], error: null })),
                 }
