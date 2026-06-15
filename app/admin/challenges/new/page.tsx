@@ -233,7 +233,7 @@ export default function NewChallengePage() {
         <Card className="p-6 mb-6">
           <h2 className="text-base font-bold mb-1">일정 설정</h2>
           <p className="text-xs text-text-muted mb-5">
-            제출일만 고르면 투표·결과 공개일은 자동으로 정해져요. (제출 → 다음 날 투표 → 그 다음 날 결과)
+            제출일만 고르면 나머지는 자동이에요. 1일차 제출 → 2일차 투표, 투표 마감(자정) 직후 바로 결과가 공개돼요. (2일 주기)
           </p>
           <div className="max-w-[240px]">
             <Label htmlFor="submission_date">제출일 *</Label>
@@ -251,7 +251,7 @@ export default function NewChallengePage() {
               {[
                 { label: '제출', day: formatDay(addDays(form.submission_date, 0)), color: 'text-success' },
                 { label: '투표', day: formatDay(addDays(form.submission_date, 1)), color: 'text-warning' },
-                { label: '결과', day: formatDay(addDays(form.submission_date, 2)), color: 'text-accent' },
+                { label: '결과', day: `${formatDay(addDays(form.submission_date, 1))} 자정 직후`, color: 'text-accent' },
               ].map(item => (
                 <div
                   key={item.label}
