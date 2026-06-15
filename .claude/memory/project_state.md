@@ -21,7 +21,15 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
 - **#2 제출 API 속도(7.5s→대폭 단축)**: `app/api/submit/route.ts` — 챌린지·생성물·중복확인 3조회를 `Promise.all` 병렬화, 코인·뱃지(보상)는 `after()`로 응답 후 처리(왕복 ~10→~4). 부수효과로 코인 적립 실패가 더 이상 제출 응답을 500으로 만들지 않음(우아한 실패). 모든 service-client 조회로 통일
 - **#3 집계 전 투표상황 노출 버그**: `results/page.tsx`에서 `getChallengeState`로 게이팅 — `state !== 'results'`(투표 중 등)이면 "아직 결과가 공개되지 않았어요" 화면. 프로필>지난 챌린지의 "집계 전" 항목 링크로 진행 중 순위·득표를 미리 보던 누수 차단. `getChallengeState`/`getNextTransition` 파라미터를 `ChallengeTiming`(기간 4필드 Pick)으로 좁힘
 - **#4 제출 횟수 문구 5→3**: generate 화면 placeholder·잠금 버튼이 `MAX_GENERATIONS` 사용("생성 잠금 (3/3)"). (앱 코드의 5회 잔재는 여기뿐이었음 — 나머지는 PRD 문서)
-- 검증: vitest 69 passing(submit 테스트 목 재작성 — 병렬조회·after 폴백 반영), Playwright `tests/todo-generate-ui.spec.ts` 2 passing(#1·#4 실화면). e2e helper 쿠키 버그 수정(Playwright 1.60: url+path 동시 금지 → domain+path). 결과 페이지(#3)·제출 속도(#2)는 서버 컴포넌트/라우트라 실DB 없이 e2e 불가 → vitest로 커버. **e2e 실행엔 `.env.local` 필요**
+- 검증: vitest 69 passing(submit 테스트 목 재작성 — 병렬조회·after 폴백 반영), Playwright `tests/todo-generate-ui.spec.ts` 2 passing(#1·#4 실화면). e2e helper 쿠키 버그 수정(Playwright 1.60: url+path 동시 금지 → domain+path). 결과 페이지(#3)·제출 속도(#2)는 서버 컴포넌트/라우트라 실DB 없이 e2e 불가 → vitest로 커버. e2e/빌드 검증엔 env가 필요하지만 **더미 `.env.local` 파일을 만들지 말 것**([[no-dummy-envlocal]] 참고).
+
+### v1.2 주기 단축 + 관리자 일정 편집 + 성능 (2026-06-15)
+
+- **PRD v1.2 = 2일 주기** (제출1일 + 투표·결과1일, 투표 마감 자정 직후 즉시 결과). 백엔드 일정 파생은 이미 2일 주기였음 — 제출일 하나로 제출 day0 종일 / 투표 day1 종일 / `voting_end=day1 자정` → 결과 자동(voting_end 이후).
+- **기조(중요): 챌린지 생성·수정 모두 "제출일 하나만" 입력 → 나머지(제출마감·투표시작/마감) 2일 주기 자동 파생.** 한때 4시각 직접입력 UI를 넣었다가 사용자가 거부(기조 위반)해 되돌림. 공용 `lib/challenge-schedule.ts`의 `deriveTwoDayISO`+`validateSchedule`를 생성(POST)·수정(PATCH)이 공유. 제출일 기본값: 생성=오늘, 수정=현재 제출 시작일.
+- **관리자 일정 수정 기능**: `/admin/challenges/[id]/edit` + `PATCH /api/admin/challenges/[id]`(관리자 전용). 챌린지 관리 목록에 "일정 수정" 버튼.
+- **성능**: results·finalize 득표 집계 N+1 제거(제출물별 count → 챌린지 전체 표 1쿼리 후 JS 합산). Vercel 함수 리전 `syd1`(대시보드 설정) — Supabase `ap-southeast-2`(시드니)와 콜로케이트. **느림의 1순위는 함수↔DB 리전 불일치였음.**
+- **홈/`is_active`**: 홈은 `is_active=true` 중 상태 우선순위(제출0>투표1>결과2>대기3)로 1개 선택. `is_active`는 공개 노출 스위치(false=홈·아카이브·예고에서 숨김, admin 목록엔 계속 보임). false로 바꾸는 UI는 현재 없음. **끝난 챌린지도 `true` 유지가 정상**(아카이브=지난 챌린지 노출용).
 
 ### PRD v1.1 — 투표 피로도 완화 (2026-06-12 구현)
 
