@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { validateSchedule, type ScheduleTimes } from '@/lib/challenge-schedule'
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,31 +30,47 @@ export async function POST(request: NextRequest) {
       temperature,
       wrapper_text,
       submission_date,
+      submission_start_at,
+      submission_end_at,
+      voting_start_at,
+      voting_end_at,
     } = body
 
-    if (!title || !instruction || !submission_date) {
-      return NextResponse.json({ error: '필수 필드가 누락됐어요.' }, { status: 400 })
+    if (!title || !instruction) {
+      return NextResponse.json({ error: '제목과 설명은 필수예요.' }, { status: 400 })
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(submission_date)) {
-      return NextResponse.json({ error: '제출일 형식이 올바르지 않아요.' }, { status: 400 })
+    // 일정: 4시각을 직접 받으면 그대로 쓰고, 없으면 제출일 하나로 2일 주기를 파생한다.
+    let schedule: ScheduleTimes
+    if (submission_start_at && submission_end_at && voting_start_at && voting_end_at) {
+      schedule = { submission_start_at, submission_end_at, voting_start_at, voting_end_at }
+    } else if (submission_date && /^\d{4}-\d{2}-\d{2}$/.test(submission_date)) {
+      const addDays = (d: Date, n: number) => {
+        const x = new Date(d)
+        x.setDate(x.getDate() + n)
+        return x
+      }
+      const endOfDay = (d: Date) => {
+        const x = new Date(d)
+        x.setHours(23, 59, 59, 0)
+        return x
+      }
+      const submissionStart = new Date(`${submission_date}T00:00:00`)
+      const votingStart = addDays(submissionStart, 1)
+      schedule = {
+        submission_start_at: submissionStart.toISOString(),
+        submission_end_at: endOfDay(submissionStart).toISOString(),
+        voting_start_at: votingStart.toISOString(),
+        voting_end_at: endOfDay(votingStart).toISOString(),
+      }
+    } else {
+      return NextResponse.json({ error: '일정 정보가 필요해요.' }, { status: 400 })
     }
 
-    // 제출일 하나로 주간 사이클 전체를 파생한다 (로컬 시간 기준).
-    // 제출일: 종일 / 투표: 다음 날 종일 / 결과: 그 다음 날부터 자동 (voting_end 이후).
-    const addDays = (d: Date, n: number) => {
-      const x = new Date(d)
-      x.setDate(x.getDate() + n)
-      return x
+    const scheduleError = validateSchedule(schedule)
+    if (scheduleError) {
+      return NextResponse.json({ error: scheduleError }, { status: 400 })
     }
-    const endOfDay = (d: Date) => {
-      const x = new Date(d)
-      x.setHours(23, 59, 59, 0)
-      return x
-    }
-
-    const submissionStart = new Date(`${submission_date}T00:00:00`)
-    const votingStart = addDays(submissionStart, 1)
 
     const serviceSupabase = await createServiceClient()
 
@@ -65,10 +82,7 @@ export async function POST(request: NextRequest) {
         model_name: model_name || 'gemini-2.5-flash',
         temperature: temperature || 0.7,
         wrapper_text: wrapper_text || null,
-        submission_start_at: submissionStart.toISOString(),
-        submission_end_at: endOfDay(submissionStart).toISOString(),
-        voting_start_at: votingStart.toISOString(),
-        voting_end_at: endOfDay(votingStart).toISOString(),
+        ...schedule,
         created_by: user.id,
         is_active: true,
       })

@@ -72,6 +72,9 @@ export default async function AdminChallengesPage() {
 
                   <div className="flex gap-2 shrink-0">
                     <Button asChild variant="secondary" size="sm">
+                      <Link href={`/admin/challenges/${c.id}/edit`}>일정 수정</Link>
+                    </Button>
+                    <Button asChild variant="secondary" size="sm">
                       <Link href={`/challenge/${c.id}/results`}>결과 보기</Link>
                     </Button>
                     <FinalizeButton challengeId={c.id} state={state} isFinalized={isFinalized} />
