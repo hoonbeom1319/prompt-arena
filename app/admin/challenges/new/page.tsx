@@ -33,9 +33,7 @@ export default function NewChallengePage() {
     submission_date: todayLocal(),
   }))
   const [loading, setLoading] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [aiTopic, setAiTopic] = useState('')
   const [activeConflict, setActiveConflict] = useState<{ title: string; state: 'submission' | 'voting' } | null>(null)
 
   useEffect(() => {
@@ -59,23 +57,6 @@ export default function NewChallengePage() {
         }
       })
   }, [])
-
-  const handleAiDraft = async () => {
-    if (!aiTopic.trim()) return
-    setAiLoading(true)
-    const res = await fetch('/api/admin/ai-draft', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic: aiTopic }),
-    })
-    const data = await res.json()
-    if (res.ok) {
-      setForm(prev => ({ ...prev, title: data.title, instruction: data.instruction }))
-    } else {
-      setError(data.error || 'AI 생성에 실패했어요.')
-    }
-    setAiLoading(false)
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,45 +96,6 @@ export default function NewChallengePage() {
           </p>
         </div>
       )}
-
-      <div className="grid grid-cols-2 gap-5 items-start">
-        {/* AI 초안 채팅 (좌) */}
-        <Card className="p-4">
-          <div className="flex items-center gap-2 text-text-primary font-semibold text-[15px] mb-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            AI 주제 초안 (챗봇)
-          </div>
-          <div className="flex flex-col gap-2.5 mb-4">
-            <div className="self-start max-w-[90%] p-3 bg-bg-subtle border border-border rounded-lg rounded-tl-sm text-xs text-text-secondary">
-              어떤 카테고리의 주제를 만들까요? 채점 가능한 형태로 제안드릴게요.
-            </div>
-            {aiTopic && (
-              <div className="self-end max-w-[85%] p-3 bg-accent-light border border-accent-mid rounded-lg rounded-tr-sm text-xs text-text-primary">
-                {aiTopic}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={aiTopic}
-              onChange={e => setAiTopic(e.target.value)}
-              placeholder="예: 글쓰기 카테고리, 채점 가능한 주제 3개"
-              aria-label="AI 챌린지 초안 주제"
-            />
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleAiDraft}
-              disabled={aiLoading || !aiTopic.trim()}
-              className="shrink-0"
-            >
-              {aiLoading ? '생성 중...' : '초안 생성'}
-            </Button>
-          </div>
-        </Card>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Card className="p-6 mb-4">
@@ -289,7 +231,6 @@ export default function NewChallengePage() {
           </Button>
         </div>
       </form>
-      </div>
     </div>
   )
 }
