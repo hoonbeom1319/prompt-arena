@@ -8,24 +8,30 @@ import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
 import { createClient } from '@/lib/supabase/client'
 import { getChallengeState } from '@/lib/challenge-state'
-import ScheduleFields from '../ScheduleFields'
-import { deriveTwoDayLocal, localToISO, type ScheduleLocal } from '@/lib/challenge-schedule'
 
-const EMPTY_SCHEDULE: ScheduleLocal = {
-  submission_start: '', submission_end: '', voting_start: '', voting_end: '',
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const pad = (n: number) => String(n).padStart(2, '0')
+const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
+const addDays = (date: string, n: number) => {
+  const d = new Date(`${date}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  return d
+}
+const todayLocal = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 export default function NewChallengePage() {
   const router = useRouter()
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     title: '',
     instruction: '',
     model_name: 'gemini-2.5-flash',
     temperature: '0.7',
     wrapper_text: '',
-  })
-  const [dateQuick, setDateQuick] = useState('')
-  const [schedule, setSchedule] = useState<ScheduleLocal>(EMPTY_SCHEDULE)
+    submission_date: todayLocal(),
+  }))
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,14 +85,7 @@ export default function NewChallengePage() {
     const res = await fetch('/api/admin/challenges', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: form.title,
-        instruction: form.instruction,
-        model_name: form.model_name,
-        temperature: parseFloat(form.temperature),
-        wrapper_text: form.wrapper_text,
-        ...localToISO(schedule),
-      }),
+      body: JSON.stringify({ ...form, temperature: parseFloat(form.temperature) }),
     })
 
     const data = await res.json()
@@ -239,22 +238,36 @@ export default function NewChallengePage() {
         <Card className="p-6 mb-6">
           <h2 className="text-base font-bold mb-1">일정 설정</h2>
           <p className="text-xs text-text-muted mb-5">
-            제출일을 고르면 2일 주기로 자동 채워져요. 필요하면 아래 시각을 직접 조정하세요. 투표 마감(자정) 직후 결과가 자동 공개됩니다.
+            제출일만 고르면 나머지(제출 마감·투표 시작/마감)는 자동으로 정해져요. 1일차 제출 → 2일차 투표, 투표 마감(자정) 직후 바로 결과가 공개돼요. (2일 주기)
           </p>
-          <div className="max-w-[240px] mb-5">
-            <Label htmlFor="date_quick">제출일 (빠른 채우기)</Label>
+          <div className="max-w-[240px]">
+            <Label htmlFor="submission_date">제출일 *</Label>
             <Input
-              id="date_quick"
+              id="submission_date"
               type="date"
-              value={dateQuick}
-              onChange={e => {
-                setDateQuick(e.target.value)
-                if (e.target.value) setSchedule(deriveTwoDayLocal(e.target.value))
-              }}
+              value={form.submission_date}
+              onChange={e => update('submission_date', e.target.value)}
+              required
             />
           </div>
 
-          <ScheduleFields value={schedule} onChange={setSchedule} />
+          {form.submission_date && (
+            <div className="mt-4 flex flex-wrap gap-2 text-[13px]" aria-live="polite">
+              {[
+                { label: '제출', day: formatDay(addDays(form.submission_date, 0)), color: 'text-success' },
+                { label: '투표', day: formatDay(addDays(form.submission_date, 1)), color: 'text-warning' },
+                { label: '결과', day: `${formatDay(addDays(form.submission_date, 1))} 자정 직후`, color: 'text-accent' },
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-base border border-border rounded-full"
+                >
+                  <span className={`font-semibold ${item.color}`}>{item.label}</span>
+                  <span className="text-text-secondary">{item.day}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {error && (

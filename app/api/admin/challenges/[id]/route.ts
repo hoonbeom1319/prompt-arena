@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { validateSchedule, type ScheduleTimes } from '@/lib/challenge-schedule'
+import { deriveTwoDayISO, validateSchedule } from '@/lib/challenge-schedule'
 
 export async function PATCH(
   request: NextRequest,
@@ -33,22 +33,19 @@ export async function PATCH(
       model_name,
       temperature,
       wrapper_text,
-      submission_start_at,
-      submission_end_at,
-      voting_start_at,
-      voting_end_at,
+      submission_date,
     } = body
 
     if (!title || !instruction) {
       return NextResponse.json({ error: '제목과 설명은 필수예요.' }, { status: 400 })
     }
 
-    const schedule: ScheduleTimes = {
-      submission_start_at,
-      submission_end_at,
-      voting_start_at,
-      voting_end_at,
+    if (!submission_date || !/^\d{4}-\d{2}-\d{2}$/.test(submission_date)) {
+      return NextResponse.json({ error: '제출일 형식이 올바르지 않아요.' }, { status: 400 })
     }
+
+    // 제출일 하나로 2일 주기 전체를 자동 파생한다 (생성과 동일 기조).
+    const schedule = deriveTwoDayISO(submission_date)
     const scheduleError = validateSchedule(schedule)
     if (scheduleError) {
       return NextResponse.json({ error: scheduleError }, { status: 400 })

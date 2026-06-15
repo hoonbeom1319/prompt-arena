@@ -7,11 +7,19 @@ import { Input, Textarea } from '@/ds/input'
 import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
 import { createClient } from '@/lib/supabase/client'
-import ScheduleFields from '../../ScheduleFields'
-import { isoToLocal, localToISO, type ScheduleLocal } from '@/lib/challenge-schedule'
 
-const EMPTY_SCHEDULE: ScheduleLocal = {
-  submission_start: '', submission_end: '', voting_start: '', voting_end: '',
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const pad = (n: number) => String(n).padStart(2, '0')
+const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
+const addDays = (date: string, n: number) => {
+  const d = new Date(`${date}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  return d
+}
+// ISO(UTC) → 로컬 날짜 YYYY-MM-DD (제출 시작 시각의 날짜)
+const isoToLocalDate = (iso: string) => {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 export default function EditChallengePage() {
@@ -25,8 +33,8 @@ export default function EditChallengePage() {
     model_name: 'gemini-2.5-flash',
     temperature: '0.7',
     wrapper_text: '',
+    submission_date: '',
   })
-  const [schedule, setSchedule] = useState<ScheduleLocal>(EMPTY_SCHEDULE)
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +43,7 @@ export default function EditChallengePage() {
     const supabase = createClient()
     supabase
       .from('challenges')
-      .select('title, instruction, model_name, temperature, wrapper_text, submission_start_at, submission_end_at, voting_start_at, voting_end_at')
+      .select('title, instruction, model_name, temperature, wrapper_text, submission_start_at')
       .eq('id', id)
       .single()
       .then(({ data, error: loadError }) => {
@@ -50,13 +58,8 @@ export default function EditChallengePage() {
           model_name: data.model_name ?? 'gemini-2.5-flash',
           temperature: String(data.temperature ?? 0.7),
           wrapper_text: data.wrapper_text ?? '',
+          submission_date: isoToLocalDate(data.submission_start_at),
         })
-        setSchedule(isoToLocal({
-          submission_start_at: data.submission_start_at,
-          submission_end_at: data.submission_end_at,
-          voting_start_at: data.voting_start_at,
-          voting_end_at: data.voting_end_at,
-        }))
         setPageLoading(false)
       })
   }, [id])
@@ -71,14 +74,7 @@ export default function EditChallengePage() {
     const res = await fetch(`/api/admin/challenges/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: form.title,
-        instruction: form.instruction,
-        model_name: form.model_name,
-        temperature: parseFloat(form.temperature),
-        wrapper_text: form.wrapper_text,
-        ...localToISO(schedule),
-      }),
+      body: JSON.stringify({ ...form, temperature: parseFloat(form.temperature) }),
     })
 
     const data = await res.json()
@@ -182,9 +178,36 @@ export default function EditChallengePage() {
         <Card className="p-6">
           <h2 className="text-base font-bold mb-1">일정 설정</h2>
           <p className="text-xs text-text-muted mb-5">
-            제출·투표 시작/마감 시각을 직접 조정하세요. 투표 마감(자정) 직후 결과가 자동 공개됩니다.
+            제출일만 바꾸면 나머지(제출 마감·투표 시작/마감)는 자동으로 다시 정해져요. 투표 마감(자정) 직후 결과가 자동 공개됩니다. (2일 주기)
           </p>
-          <ScheduleFields value={schedule} onChange={setSchedule} />
+          <div className="max-w-[240px]">
+            <Label htmlFor="submission_date">제출일 *</Label>
+            <Input
+              id="submission_date"
+              type="date"
+              value={form.submission_date}
+              onChange={e => update('submission_date', e.target.value)}
+              required
+            />
+          </div>
+
+          {form.submission_date && (
+            <div className="mt-4 flex flex-wrap gap-2 text-[13px]" aria-live="polite">
+              {[
+                { label: '제출', day: formatDay(addDays(form.submission_date, 0)), color: 'text-success' },
+                { label: '투표', day: formatDay(addDays(form.submission_date, 1)), color: 'text-warning' },
+                { label: '결과', day: `${formatDay(addDays(form.submission_date, 1))} 자정 직후`, color: 'text-accent' },
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-base border border-border rounded-full"
+                >
+                  <span className={`font-semibold ${item.color}`}>{item.label}</span>
+                  <span className="text-text-secondary">{item.day}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {error && (
