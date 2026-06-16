@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { kstToday } from '@/lib/quiz'
-
-// "YYYY-MM-DD" → 다음 날 (달력 산술, 타임존 무관). 정오 UTC 앵커로 경계 안전.
-const pad = (n: number) => String(n).padStart(2, '0')
-const nextCalendarDay = (date: string) => {
-  const d = new Date(`${date}T12:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + 1)
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
-}
+import { kstToday, nextCalendarDay } from '@/lib/time'
 
 const requireAdmin = async () => {
   const supabase = await createClient()

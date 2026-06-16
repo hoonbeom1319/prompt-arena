@@ -8,6 +8,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import { awardCoins, COIN_AMOUNTS, COIN_REASONS, recoveryCost } from './coins'
+import { kstToday } from './time'
 
 // 정답을 맞혔을 때의 새 연승 값 (순수 함수 — 테스트 대상).
 //  - prevPublishDate: 오늘 이전 '출제된' 가장 최근 날짜 (출제 공백은 건너뛴 값).
@@ -34,12 +35,6 @@ export interface QuizItem {
 export interface StreakInfo {
   current: number
   best: number
-}
-
-// 현재 시각을 KST 달력의 'YYYY-MM-DD'로. (서버 런타임 타임존 무관하게 +9h 고정)
-export const kstToday = (): string => {
-  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000)
-  return kst.toISOString().slice(0, 10)
 }
 
 // 오늘(KST) 게시된 문항. 없으면 null (그날 퀴즈 없음 — 연승에 영향 없음).
