@@ -2,7 +2,7 @@ import { GoogleGenAI } from '@google/genai'
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 
-export async function generateWithPrompt({
+export const generateWithPrompt = async ({
   prompt,
   modelName = 'gemini-2.5-flash',
   temperature = 0.7,
@@ -12,7 +12,7 @@ export async function generateWithPrompt({
   modelName?: string
   temperature?: number
   wrapperText?: string | null
-}) {
+}) => {
   const fullPrompt = wrapperText
     ? wrapperText.includes('{{prompt}}')
       ? wrapperText.replaceAll('{{prompt}}', prompt)

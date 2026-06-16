@@ -7,10 +7,10 @@ export interface FinalizeResult {
   finalizedCount: number
 }
 
-export async function finalizeChallenge(
+export const finalizeChallenge = async (
   serviceSupabase: SupabaseClient,
   challengeId: string
-): Promise<FinalizeResult> {
+): Promise<FinalizeResult> => {
   // Idempotency guard — already finalized if any non-seed submission has final_rank
   const { data: existing } = await serviceSupabase
     .from('submissions')

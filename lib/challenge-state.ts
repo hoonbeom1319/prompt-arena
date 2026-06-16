@@ -25,7 +25,7 @@ export type ChallengeTiming = Pick<
   'submission_start_at' | 'submission_end_at' | 'voting_start_at' | 'voting_end_at'
 >
 
-export function getChallengeState(challenge: ChallengeTiming, now?: Date): ChallengeState {
+export const getChallengeState = (challenge: ChallengeTiming, now?: Date): ChallengeState => {
   const current = now ?? new Date()
   const submissionStart = new Date(challenge.submission_start_at)
   const submissionEnd = new Date(challenge.submission_end_at)
@@ -47,7 +47,7 @@ export function getChallengeState(challenge: ChallengeTiming, now?: Date): Chall
   return 'idle'
 }
 
-export function getStateLabel(state: ChallengeState): string {
+export const getStateLabel = (state: ChallengeState): string => {
   switch (state) {
     case 'submission':
       return '제출 중'
@@ -60,7 +60,7 @@ export function getStateLabel(state: ChallengeState): string {
   }
 }
 
-export function getStateColor(state: ChallengeState): string {
+export const getStateColor = (state: ChallengeState): string => {
   switch (state) {
     case 'submission':
       return 'var(--success)'
@@ -73,7 +73,7 @@ export function getStateColor(state: ChallengeState): string {
   }
 }
 
-export function getNextTransition(challenge: ChallengeTiming, now?: Date): { label: string; time: Date } | null {
+export const getNextTransition = (challenge: ChallengeTiming, now?: Date): { label: string; time: Date } | null => {
   const current = now ?? new Date()
   const state = getChallengeState(challenge, current)
 

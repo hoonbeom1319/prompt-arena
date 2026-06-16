@@ -19,13 +19,13 @@ export const STREAK_RECOVERY_COST_FACTOR = 1
 export const recoveryCost = (streakLength: number) =>
   streakLength * STREAK_RECOVERY_COST_FACTOR
 
-export async function awardCoins(
+export const awardCoins = async (
   supabase: SupabaseClient,
   userId: string,
   amount: number,
   reason: string,
   challengeId?: string
-) {
+) => {
   // Insert transaction
   const { error: txError } = await supabase.from('coin_transactions').insert({
     user_id: userId,
@@ -62,11 +62,11 @@ export async function awardCoins(
   }
 }
 
-export async function checkAndAwardBadge(
+export const checkAndAwardBadge = async (
   supabase: SupabaseClient,
   userId: string,
   conditionType: string
-) {
+) => {
   // Find badge
   const { data: badge } = await supabase
     .from('badges')

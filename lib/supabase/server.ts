@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+export const createClient = async () => {
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -30,7 +30,7 @@ export async function createClient() {
 
 // service-role 클라이언트 — secret key만 사용하고 유저 쿠키/세션을 붙이지 않는다.
 // 쿠키를 넘기면 로그인 유저의 JWT가 Authorization을 덮어써서 RLS를 우회하지 못한다.
-export async function createServiceClient() {
+export const createServiceClient = async () => {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!,

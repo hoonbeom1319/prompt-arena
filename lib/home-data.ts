@@ -14,7 +14,7 @@ export interface NextChallengePreview {
   startAt: string
 }
 
-export async function fetchHomeData(challenge: Challenge | null, userId?: string | null) {
+export const fetchHomeData = async (challenge: Challenge | null, userId?: string | null) => {
   const supabase = await createClient()
   const now = new Date()
 
@@ -127,7 +127,7 @@ export async function fetchHomeData(challenge: Challenge | null, userId?: string
   }
 }
 
-async function fetchTop3(challengeId: string): Promise<TopRankEntry[]> {
+const fetchTop3 = async (challengeId: string): Promise<TopRankEntry[]> => {
   const service = await createServiceClient()
 
   const { data: submissions } = await service
@@ -178,11 +178,11 @@ async function fetchTop3(challengeId: string): Promise<TopRankEntry[]> {
     .map(s => ({ id: s.id, rank: s.rank, votes: s.voteCount }))
 }
 
-async function fetchNextChallenge(
+const fetchNextChallenge = async (
   supabase: Awaited<ReturnType<typeof createClient>>,
   now: Date,
   excludeId?: string,
-): Promise<NextChallengePreview | null> {
+): Promise<NextChallengePreview | null> => {
   let query = supabase
     .from('challenges')
     .select('id, title, submission_start_at, category_id')
