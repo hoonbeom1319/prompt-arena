@@ -9,18 +9,24 @@ metadata:
 
 PRD `docs/prompt-arena-prd-v1.3.md` 4.7 신규 기능을 풀스택으로 구현. v1.3의 다른 변경은 코드 작업 불필요(admin AI 내부호출 제거는 `af6e6ab`에서 이미 완료, 신고·사전필터는 홀딩).
 
-### ⚠️ 배포 전 필수 — 미적용 DB DDL (`supabase/migrate-v1.3-quiz.sql`만 실행)
+### DB 마이그레이션 — 적용 완료 (2026-06-16, 사용자가 실행)
 
-신규 테이블 `quiz_items`(질문/정답O·X/해설/publish_date unique), `quiz_answers`(user+item unique, 하루 1회), `streaks`(current/best/last_correct_date). + 뱃지 seed `streak_10/20/30`. **`schema.sql` 전체 재실행 금지** — 기존 `create policy`가 `if not exists` 미지원이라 "already exists" 에러 → Supabase SQL editor 트랜잭션 전체 롤백. 증분 파일 `supabase/migrate-v1.3-quiz.sql`(drop policy if exists 포함, 재실행 안전)만 SQL editor에 붙여넣을 것. **이 DDL을 적용해야 퀴즈가 동작**한다.
+`supabase/migrate-v1.3-quiz.sql` 실행됨 → `quiz_items`(질문/정답O·X/해설/publish_date unique), `quiz_answers`(user+item unique, 하루 1회), `streaks`(current/best/last_correct_date) 테이블 + RLS 생성됨. **`schema.sql` 전체 재실행은 금지였음** — 기존 `create policy`가 `if not exists` 미지원이라 "already exists" → SQL editor 트랜잭션 전체 롤백. 그래서 증분 파일만 실행. ⚠️ *뱃지 포함 초기 버전* migrate를 돌렸다면 `streak_10/20/30` 뱃지 3행이 dormant로 남을 수 있음(수여 로직 제거됨 → 무해. 지우려면 migrate 파일 하단 주석 `delete` 실행).
+
+### 남은 일 (운영)
+
+- **문항 비축 등록 예정**: 사용자가 곧 퀴즈 ~30개 배치 등록 예정(`/admin/quiz`). 등록 전엔 `/quiz`가 "오늘은 퀴즈가 없어요"(정상).
+- **push 시 배포**: 코드는 commit 완료, push는 사용자가(DB 이미 적용돼 push 순서 제약 해제).
+- **로컬 화면 미검증**: 실동작(O/X 응답·연승 누적)은 문항 등록 후 확인 필요.
 
 ### 구현 내용
 
 - **연승 규칙(핵심)**: 정답 시 `nextStreakValue(prevCurrent, lastCorrectDate, prevPublishDate)` 순수함수로 판정 — 직전 *출제된* 날(공백 건너뜀)에 내가 정답이었으면 +1, 아니면 1. 틀리면 0(`last_correct_date` 미갱신). "하루 빠지면/틀리면 초기화" + "출제된 날만 카운트"(비축 소진이 연승 안 깸). `lib/quiz.ts`. 하루 기준=KST 자정(`kstToday`).
-- **보상**: 매일 정답 `COIN_AMOUNTS.QUIZ_CORRECT_DAILY=1`만. 마일스톤 코인 보너스는 *미지급*(뱃지 10·20·30연승만). 켤 때 두 부등호 사수 주석을 `lib/coins.ts`·`lib/quiz.ts`에 남김. (placeholder 0을 COIN_AMOUNTS에 넣었다가 "적립만(+)" 불변식 테스트 깨져서 상수 대신 주석으로 처리)
+- **보상**: 매일 정답 `COIN_AMOUNTS.QUIZ_CORRECT_DAILY=1`만. **마일스톤 뱃지·코인 보너스는 제외**(사용자 결정 — 연승 숫자 자체가 보상). 나중에 마일스톤 코인 켤 경우 두 부등호 사수 주석을 `lib/coins.ts`에 남김.
 - **보안**: `quiz_items`는 정답·해설 포함이라 RLS public read 안 줌 → 오늘 문항 노출/채점 모두 service-role 서버에서만. 응답 전 정답 노출 금지. 정답·해설은 *응답 후에만* 클라에 내려감.
 - **사용자**: `app/quiz/page.tsx`(서버, 초기상태 주입) + `app/quiz/QuizClient.tsx`(O/X→즉시 채점·해설·연승). 비회원은 체험만(연승·코인 미집계, 답 누르면 `/auth/login`). `app/api/quiz/route.ts` GET/POST(서버가 오늘 문항 직접 결정, 하루 1회 가드). TabBar에 '퀴즈' 탭 추가(아레나/지난챌린지/**퀴즈**/내프로필 4탭).
-- **admin**: `app/admin/quiz/page.tsx` — 외부 AI로 만든 O/X 문항을 JSON 배열로 붙여넣어 *배치 등록*(시작일부터 빈 날짜 순차 배정, 점유 날짜 건너뜀) + 비축 잔량(오늘 이후 N일치, ≤3 경고) + 예정 목록. `app/api/admin/quiz/route.ts` GET/POST(admin 가드, 검수: 정답 O/X·질문·해설 필수). AdminShell 사이드바에 '데일리 퀴즈' 메뉴.
-- **검증**: tsc·ESLint 클린, vitest **77/77**(`__tests__/quiz.test.ts` 8건 신규 — 연승 엣지·부등호), 프로덕션 빌드 통과. **로컬 화면 미검증**(DB DDL 미적용 상태라 실동작은 SQL 적용 후 확인 필요).
+- **admin**: `app/admin/quiz/page.tsx` — 외부 AI로 만든 O/X 문항을 **JSON 배열만** 붙여넣어 *배치 등록*. **시작 게시일 UI 제거**("맞춰야 할 압박" 피드백) → 서버가 `start_date` 없으면 오늘(KST)부터 빈 날짜 순차 배정(점유 날짜 skip). 비축 잔량(오늘 이후 N일치, ≤3 경고) + 예정 목록. `app/api/admin/quiz/route.ts` GET/POST(admin 가드, 검수: 정답 O/X·질문·해설 필수, `start_date` 선택값). AdminShell 사이드바에 '데일리 퀴즈' 메뉴.
+- **검증**: tsc·ESLint 클린, vitest **76/76**(`__tests__/quiz.test.ts` — 연승 엣지·부등호), 프로덕션 빌드 통과.
 
 ## 현재 상태 (2026-06-16 6차 갱신)
 
