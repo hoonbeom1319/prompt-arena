@@ -1,8 +1,43 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (v1.3 데일리 O/X 퀴즈+연승 풀스택 신규 구현)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (v1.4 연승 회복=코인 첫 사용처 구현)
 metadata:
   type: project
+---
+
+## 현재 상태 (2026-06-16 8차 갱신) — PRD v1.4 연승 회복 (코인 첫 사용처) 구현
+
+PRD `docs/PRD/prompt-arena-prd-v1.4.md` 4.7.6 신규 기능 구현. v1.4의 핵심은 단 하나 — **코인이 적립만 → 적립+사용으로 전환, 첫 사용처=퀴즈 연승 회복.** 사용자 결정으로 **"연승 회복 코어만"** 범위(A-9 admin 코인경제 모니터링은 다음으로). [[project-philosophy]]
+
+### DB 마이그레이션 — ⚠️ 미적용 (배포 전 사용자가 실행 필요)
+
+`supabase/migrate-v1.4-streak-recovery.sql` — `streaks`에 컬럼 2개 추가:
+- `recoverable_streak integer` (틀려서 끊긴 직전 연승값, >0이면 회복 대상)
+- `recoverable_date date` (틀린 게시일 — 오늘 문항 게시일과 같을 때만 회복 허용 = **소급 불가**의 구현)
+`schema.sql`도 동기화함(streaks 정의). **coin_transactions는 변경 없음** — 사용(차감)은 기존 원장에 음수 `amount`로 기록(첫 음수 거래, reason `'연승 회복'`).
+
+### 설계 핵심 (PRD 4.7.6)
+
+- **틀려서 끊긴 경우만 회복.** 미참여 끊김은 `submitQuizAnswer`를 안 타고 `nextStreakValue`가 1로 떨굼 → **구조적으로 회복 불가**(별도 차단 코드 불필요). "안 와도 코인 쓰면 됨" 구멍 원천 차단.
+- **비용 = 끊긴 직전 연승 × N.** `STREAK_RECOVERY_COST_FACTOR=1`(`lib/coins.ts`), `recoveryCost(n)`. N=1이면 길수록 거의 공짜 → 사용률 과하면 상향(다음 사이클 모니터링 대상).
+- **유지만(+1 없음).** 회복 시 `current_streak=끊긴값`으로 복원하되 **`last_correct_date=오늘`으로 갱신** → 다음 정답일에 연속이 이어짐(거기서 +1). (값은 +1 안 함 = 틀린 날을 정답으로 안 침.)
+- **소급 불가.** `recoverable_date==오늘 게시일`일 때만 회복 허용 → 내일 새 문항 게시되면 어제 끊김은 회복 대상에서 자동 탈락. 코인 부족 시 회복 불가.
+- **잔액 음수 방지:** `awardCoins`는 음수 방지 안 함 → 회복 API(`recoverStreak`)가 `balance < cost` 사전 체크.
+
+### 구현 파일
+
+- **`lib/quiz.ts`**: `submitQuizAnswer` 오답 분기에서 끊긴 직전 연승 보존(`recoverable_streak/date` upsert) + `SubmitResult`에 `recoverable/recoverableStreak/recoverCost/balance` 추가. 신규 `recoverStreak()`(검증→차감→복원), `getRecoverState()`(새로고침 후 팝업 일관 재노출), `getCoinBalance()`.
+- **`app/api/quiz/recover/route.ts`** 신규 POST — 인증 후 `recoverStreak` 위임. 회복 불가 시 409.
+- **`app/api/quiz/route.ts`**·**`app/quiz/page.tsx`**: GET/SSR이 `recover` 상태 함께 반환.
+- **`app/quiz/RecoverModal.tsx`** 신규 — 회복 제안 팝업(ds에 모달 없어 신규). 코인 부족 시 버튼 비활성. **`app/quiz/QuizClient.tsx`**: 틀린 직후 모달, 포기=0확정(소급불가), 같은 날 재오픈 링크, 회복 성공 시 "🛡️ N연승 지킴" 문구.
+- **검증**: tsc·ESLint 클린, vitest **78/78**(`coins.test.ts`에 회복 비용 테스트 +3, "MVP는 적립만" 테스트는 v1.4가 뒤집어 문구 수정).
+
+### 남은 일
+
+- **마이그레이션 실행**: 사용자가 `migrate-v1.4-streak-recovery.sql`을 Supabase SQL editor에 적용 후 push(배포). 미적용 시 `recoverable_*` 컬럼 없어 500.
+- **로컬 미검증**: 실동작(오답→팝업→코인차감→복원)은 마이그레이션+문항 등록 후 확인 필요.
+- **A-9 admin 코인경제 모니터링**: 이번 범위 제외. 적립vs사용·회복사용률·"퀴즈 누적<챌린지 우승" 부등호 감시 — 다음 사이클.
+
 ---
 
 ## 현재 상태 (2026-06-16 7차 갱신) — PRD v1.3 데일리 O/X 퀴즈 + 연승 구현

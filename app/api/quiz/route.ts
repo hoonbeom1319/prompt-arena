@@ -4,6 +4,7 @@ import {
   getTodayQuizItem,
   getStreak,
   getMyAnswerForItem,
+  getRecoverState,
   submitQuizAnswer,
 } from '@/lib/quiz'
 
@@ -31,9 +32,10 @@ export async function GET() {
       })
     }
 
-    const [myAnswer, streak] = await Promise.all([
+    const [myAnswer, streak, recover] = await Promise.all([
       getMyAnswerForItem(service, user.id, item.id),
       getStreak(service, user.id),
+      getRecoverState(service, user.id, item),
     ])
 
     return NextResponse.json({
@@ -48,6 +50,7 @@ export async function GET() {
           }
         : null,
       streak,
+      recover,
     })
   } catch (err) {
     console.error('Quiz GET error:', err)

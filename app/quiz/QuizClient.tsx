@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/ds/card'
+import RecoverModal from './RecoverModal'
 
 interface MyAnswer {
   choice: 'O' | 'X'
@@ -16,12 +17,20 @@ interface StreakInfo {
   best: number
 }
 
+interface RecoverState {
+  recoverable: boolean
+  recoverableStreak: number
+  recoverCost: number
+  balance: number
+}
+
 interface QuizClientProps {
   isLoggedIn: boolean
   initialQuestion: { id: string; question: string } | null
   initialAnswered: boolean
   initialMyAnswer: MyAnswer | null
   initialStreak: StreakInfo | null
+  initialRecover: RecoverState | null
 }
 
 const StreakBadge = ({ current, best }: StreakInfo) => (
@@ -40,6 +49,7 @@ export default function QuizClient({
   initialAnswered,
   initialMyAnswer,
   initialStreak,
+  initialRecover,
 }: QuizClientProps) {
   const router = useRouter()
   const [answered, setAnswered] = useState(initialAnswered)
@@ -47,6 +57,46 @@ export default function QuizClient({
   const [streak, setStreak] = useState<StreakInfo | null>(initialStreak)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 연승 회복 (PRD v1.4 4.7.6) — 틀린 직후 제안 팝업. 새로고침 후에도 회복 가능하면(initialRecover) 다시 띄움.
+  const [recover, setRecover] = useState<RecoverState | null>(
+    initialRecover?.recoverable ? initialRecover : null
+  )
+  const [showRecover, setShowRecover] = useState(!!initialRecover?.recoverable)
+  const [recovered, setRecovered] = useState(false)
+  const [recoverLoading, setRecoverLoading] = useState(false)
+  const [recoverError, setRecoverError] = useState<string | null>(null)
+
+  const handleRecover = async () => {
+    if (recoverLoading) return
+    setRecoverLoading(true)
+    setRecoverError(null)
+    try {
+      const res = await fetch('/api/quiz/recover', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        // 코인 부족 등 — 잔액 갱신 후 안내 유지
+        if (typeof data.balance === 'number' && recover) {
+          setRecover({ ...recover, balance: data.balance })
+        }
+        setRecoverError(data.error ?? '회복에 실패했어요.')
+        return
+      }
+      setStreak(data.streak)
+      setRecovered(true)
+      setShowRecover(false)
+    } catch {
+      setRecoverError('네트워크 오류가 발생했어요.')
+    } finally {
+      setRecoverLoading(false)
+    }
+  }
+
+  // 포기 = 연승 0 확정 (서버는 이미 0으로 기록됨, 소급 불가).
+  const handleDismissRecover = () => {
+    if (recoverLoading) return
+    setShowRecover(false)
+  }
 
   // 오늘 출제된 문항이 없는 날 (비축 소진 등) — 연승은 깨지지 않음
   if (!initialQuestion) {
@@ -90,6 +140,16 @@ export default function QuizClient({
       })
       setStreak(data.streak)
       setAnswered(true)
+      // 틀려서 끊긴 연승이 있으면 회복 제안 팝업 (그 자리에서만 결정 — PRD 4.7.6)
+      if (data.recoverable) {
+        setRecover({
+          recoverable: true,
+          recoverableStreak: data.recoverableStreak,
+          recoverCost: data.recoverCost,
+          balance: data.balance,
+        })
+        setShowRecover(true)
+      }
     } catch {
       setError('네트워크 오류가 발생했어요.')
     } finally {
@@ -151,10 +211,34 @@ export default function QuizClient({
             <p className="text-sm text-text-muted mt-4">
               {myAnswer.is_correct
                 ? `🔥 ${streak.current}연승! 내일도 만나요.`
+                : recovered
+                ? `🛡️ 코인으로 ${streak.current}연승을 지켰어요. 내일 맞히면 이어져요!`
                 : '연승이 초기화됐어요. 내일 다시 시작해요!'}
             </p>
           )}
+          {/* 틀렸지만 회복 안 한 상태에서, 같은 날 다시 회복 팝업을 열 수 있는 진입점 */}
+          {!myAnswer.is_correct && !recovered && recover?.recoverable && !showRecover && (
+            <button
+              type="button"
+              onClick={() => setShowRecover(true)}
+              className="text-sm font-semibold text-accent mt-3 underline underline-offset-2"
+            >
+              코인 {recover.recoverCost}개로 연승 지키기
+            </button>
+          )}
         </Card>
+      )}
+
+      {showRecover && recover && (
+        <RecoverModal
+          recoverableStreak={recover.recoverableStreak}
+          recoverCost={recover.recoverCost}
+          balance={recover.balance}
+          loading={recoverLoading}
+          error={recoverError}
+          onRecover={handleRecover}
+          onDismiss={handleDismissRecover}
+        />
       )}
 
       {!isLoggedIn && (

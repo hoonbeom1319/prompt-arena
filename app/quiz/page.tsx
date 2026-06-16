@@ -1,5 +1,5 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { getTodayQuizItem, getStreak, getMyAnswerForItem } from '@/lib/quiz'
+import { getTodayQuizItem, getStreak, getMyAnswerForItem, getRecoverState } from '@/lib/quiz'
 import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
 import QuizClient from './QuizClient'
@@ -16,11 +16,13 @@ export default async function QuizPage() {
   let answered = false
   let myAnswer = null
   let streak = null
+  let recover = null
 
   if (user && item) {
-    const [a, s] = await Promise.all([
+    const [a, s, r] = await Promise.all([
       getMyAnswerForItem(service, user.id, item.id),
       getStreak(service, user.id),
+      getRecoverState(service, user.id, item),
     ])
     answered = !!a
     myAnswer = a
@@ -32,6 +34,7 @@ export default async function QuizPage() {
         }
       : null
     streak = s
+    recover = r
   } else if (user) {
     streak = await getStreak(service, user.id)
   }
@@ -46,6 +49,7 @@ export default async function QuizPage() {
           initialAnswered={answered}
           initialMyAnswer={myAnswer}
           initialStreak={streak}
+          initialRecover={recover}
         />
       </main>
       <TabBar />

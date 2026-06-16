@@ -124,6 +124,11 @@ create table if not exists public.streaks (
   best_streak integer default 0 not null,
   -- 마지막으로 정답을 맞힌 '게시 일자'. 직전 출제일과 비교해 연속 여부 판정.
   last_correct_date date,
+  -- 연승 회복 (PRD v1.4 4.7.6) — 코인 첫 사용처.
+  -- 틀려서 끊긴 직전 연승값(>0). null = 회복 대상 없음. 회복 성공/소급 차단 시 null로 비움.
+  recoverable_streak integer,
+  -- 틀린 '게시 일자'. 회복은 "틀린 직후 그 자리"에서만(소급 불가) → 오늘 문항 게시일과 같을 때만 허용.
+  recoverable_date date,
   updated_at timestamptz default now() not null
 );
 
