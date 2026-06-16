@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
   try {
     const { start_date, items } = await request.json()
 
-    if (!start_date || !/^\d{4}-\d{2}-\d{2}$/.test(start_date)) {
-      return NextResponse.json({ error: '시작 게시일 형식이 올바르지 않아요.' }, { status: 400 })
-    }
+    // 시작일은 선택값 — 없으면 오늘(KST)부터. 빈 날짜에 순서대로 이어붙는다(아래 skip 로직).
+    const startDate = start_date && /^\d{4}-\d{2}-\d{2}$/.test(start_date) ? start_date : kstToday()
+
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: '등록할 문항이 없어요.' }, { status: 400 })
     }
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await service
       .from('quiz_items')
       .select('publish_date')
-      .gte('publish_date', start_date)
+      .gte('publish_date', startDate)
     const taken = new Set((existing ?? []).map(e => e.publish_date))
 
-    let cursor = start_date
+    let cursor = startDate
     const rows = (items as IncomingItem[]).map(it => {
       while (taken.has(cursor)) cursor = nextCalendarDay(cursor)
       const publish_date = cursor

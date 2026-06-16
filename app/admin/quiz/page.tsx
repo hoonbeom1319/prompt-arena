@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/ds/button'
-import { Input, Textarea } from '@/ds/input'
+import { Textarea } from '@/ds/input'
 import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
 
@@ -14,12 +14,6 @@ interface QuizItem {
   publish_date: string
 }
 
-const pad = (n: number) => String(n).padStart(2, '0')
-const todayLocal = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
-
 const SAMPLE = `[
   { "question": "프롬프트에 역할(페르소나)을 부여하면 답변 품질이 달라질 수 있다.", "correct_answer": "O", "explanation": "역할 지정은 모델의 톤·관점을 유도해 결과에 영향을 줍니다." },
   { "question": "프롬프트는 무조건 길수록 좋다.", "correct_answer": "X", "explanation": "길이가 아니라 명확성·구체성이 핵심입니다. 불필요하게 길면 오히려 산만해집니다." }
@@ -28,7 +22,6 @@ const SAMPLE = `[
 export default function AdminQuizPage() {
   const [stock, setStock] = useState<number | null>(null)
   const [items, setItems] = useState<QuizItem[]>([])
-  const [startDate, setStartDate] = useState(todayLocal())
   const [raw, setRaw] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -88,7 +81,7 @@ export default function AdminQuizPage() {
     const res = await fetch('/api/admin/quiz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ start_date: startDate, items: normalized }),
+      body: JSON.stringify({ items: normalized }),
     })
     const data = await res.json()
     if (!res.ok) {
@@ -122,18 +115,10 @@ export default function AdminQuizPage() {
 
       <form onSubmit={handleSubmit}>
         <Card className="p-6 mb-5">
-          <h2 className="text-base font-bold mb-4">문항 배치 등록</h2>
-          <div className="max-w-[240px] mb-4">
-            <Label htmlFor="start_date">시작 게시일 *</Label>
-            <Input
-              id="start_date"
-              type="date"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              required
-            />
-            <p className="text-[11px] text-text-muted mt-1">이미 문항이 있는 날짜는 자동으로 건너뛰어요.</p>
-          </div>
+          <h2 className="text-base font-bold mb-1">문항 배치 등록</h2>
+          <p className="text-xs text-text-muted mb-4">
+            오늘부터 비어 있는 날짜에 배열 순서대로 하루 하나씩 자동 배정돼요. 이미 예정된 날은 건너뛰고 뒤에 이어붙여요.
+          </p>
 
           <div>
             <Label htmlFor="raw">문항 JSON *</Label>
