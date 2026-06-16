@@ -197,8 +197,5 @@ insert into public.badges (name, description, icon, condition_type) values
   ('첫 우승', '처음으로 챌린지에서 우승했어요', '🏆', 'first_win'),
   ('3연속 우승', '챌린지에서 3번 우승했어요', '👑', 'wins_3'),
   ('투표왕', '투표를 30번 했어요', '🗳️', 'votes_30'),
-  ('프롬프트 장인', '챌린지를 10번 참여했어요', '⚒️', 'participation_10'),
-  ('10연승', '퀴즈를 10일 연속 맞혔어요', '🔥', 'streak_10'),
-  ('20연승', '퀴즈를 20일 연속 맞혔어요', '⚡', 'streak_20'),
-  ('30연승', '퀴즈를 30일 연속 맞혔어요', '💎', 'streak_30')
+  ('프롬프트 장인', '챌린지를 10번 참여했어요', '⚒️', 'participation_10')
 on conflict do nothing;

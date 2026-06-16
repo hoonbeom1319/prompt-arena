@@ -5,7 +5,7 @@
  *  - 퀴즈 누적 보상 < 챌린지 우승 보상 (고정 부등호, 4.7.3)
  */
 import { describe, it, expect } from 'vitest'
-import { nextStreakValue, STREAK_MILESTONES } from '../lib/quiz'
+import { nextStreakValue } from '../lib/quiz'
 import { COIN_AMOUNTS } from '../lib/coins'
 
 describe('PRD §4.7.2/4.7.5 — 연승 판정 (정답 시)', () => {
@@ -41,9 +41,5 @@ describe('PRD §4.7.3 — 퀴즈 보상 설계', () => {
 
   it('퀴즈 매일 보상 < 챌린지 우승 보상 (양념이 본체를 못 넘는다)', () => {
     expect(COIN_AMOUNTS.QUIZ_CORRECT_DAILY).toBeLessThan(COIN_AMOUNTS.RANK_1)
-  })
-
-  it('마일스톤은 10·20·30 (상한 있음 — 무한 폭발 방지)', () => {
-    expect(STREAK_MILESTONES).toEqual([10, 20, 30])
   })
 })

@@ -7,10 +7,7 @@
 //  - 정답·해설은 응답 전 클라이언트에 노출 금지 → 이 모듈은 service-role 클라이언트로만 호출한다.
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from './coins'
-
-// 연승 마일스톤 (뱃지 부여 지점). 코인 보너스 상한도 이 목록을 따른다.
-export const STREAK_MILESTONES = [10, 20, 30] as const
+import { awardCoins, COIN_AMOUNTS } from './coins'
 
 // 정답을 맞혔을 때의 새 연승 값 (순수 함수 — 테스트 대상).
 //  - prevPublishDate: 오늘 이전 '출제된' 가장 최근 날짜 (출제 공백은 건너뛴 값).
@@ -160,15 +157,9 @@ export const submitQuizAnswer = async (
       { onConflict: 'user_id' }
     )
 
-    // 매일 정답 소액 보상
+    // 매일 정답 소액 보상 (마일스톤 뱃지·보너스는 사용자 결정으로 제외 — 연승 숫자 자체가 보상)
     await awardCoins(service, userId, COIN_AMOUNTS.QUIZ_CORRECT_DAILY, '퀴즈 정답')
     coinsAwarded = COIN_AMOUNTS.QUIZ_CORRECT_DAILY
-
-    // 마일스톤 뱃지 (10·20·30연승). 코인 보너스는 v1.3 초기엔 미지급 — 여기에 추가할 때
-    // COIN_AMOUNTS의 두 부등호(상한 / 퀴즈 누적 < 챌린지 우승)를 사수할 것.
-    for (const m of STREAK_MILESTONES) {
-      if (newCurrent >= m) await checkAndAwardBadge(service, userId, `streak_${m}`)
-    }
   } else {
     // 틀리면 초기화. last_correct_date는 그대로 둬서 다음 정답일에 연속이 끊긴 것으로 판정.
     newCurrent = 0

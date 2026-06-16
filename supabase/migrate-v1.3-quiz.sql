@@ -43,9 +43,5 @@ create policy "quiz_answers_own" on public.quiz_answers for select using (auth.u
 drop policy if exists "streaks_own" on public.streaks;
 create policy "streaks_own" on public.streaks for select using (auth.uid() = user_id);
 
--- 3) 연승 마일스톤 뱃지 seed --------------------------------------------------
-insert into public.badges (name, description, icon, condition_type) values
-  ('10연승', '퀴즈를 10일 연속 맞혔어요', '🔥', 'streak_10'),
-  ('20연승', '퀴즈를 20일 연속 맞혔어요', '⚡', 'streak_20'),
-  ('30연승', '퀴즈를 30일 연속 맞혔어요', '💎', 'streak_30')
-on conflict do nothing;
+-- (연승 마일스톤 뱃지는 제외 — 연승 숫자 자체가 보상. 이미 streak_* 뱃지를 넣었다면 아래로 제거 가능)
+-- delete from public.badges where condition_type in ('streak_10','streak_20','streak_30');
