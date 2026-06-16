@@ -9,9 +9,9 @@ metadata:
 
 PRD `docs/prompt-arena-prd-v1.3.md` 4.7 신규 기능을 풀스택으로 구현. v1.3의 다른 변경은 코드 작업 불필요(admin AI 내부호출 제거는 `af6e6ab`에서 이미 완료, 신고·사전필터는 홀딩).
 
-### ⚠️ 배포 전 필수 — 미적용 DB DDL (Supabase SQL editor에 `supabase/schema.sql` 재실행)
+### ⚠️ 배포 전 필수 — 미적용 DB DDL (`supabase/migrate-v1.3-quiz.sql`만 실행)
 
-신규 테이블 `quiz_items`(질문/정답O·X/해설/publish_date unique), `quiz_answers`(user+item unique, 하루 1회), `streaks`(current/best/last_correct_date). + 뱃지 seed `streak_10/20/30`. `create table if not exists`라 전체 재실행 안전. **이 DDL을 적용해야 퀴즈가 동작**한다.
+신규 테이블 `quiz_items`(질문/정답O·X/해설/publish_date unique), `quiz_answers`(user+item unique, 하루 1회), `streaks`(current/best/last_correct_date). + 뱃지 seed `streak_10/20/30`. **`schema.sql` 전체 재실행 금지** — 기존 `create policy`가 `if not exists` 미지원이라 "already exists" 에러 → Supabase SQL editor 트랜잭션 전체 롤백. 증분 파일 `supabase/migrate-v1.3-quiz.sql`(drop policy if exists 포함, 재실행 안전)만 SQL editor에 붙여넣을 것. **이 DDL을 적용해야 퀴즈가 동작**한다.
 
 ### 구현 내용
 
