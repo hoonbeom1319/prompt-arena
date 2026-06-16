@@ -1,9 +1,21 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (v1.4 연승 회복=코인 첫 사용처 구현)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (아키텍처 리팩토링 P5 완료. P6 대기)
 metadata:
   type: project
 ---
+
+## 현재 상태 (2026-06-16 12차 갱신) — 아키텍처 리팩토링 P5 완료
+
+P5(§5~§7) 6개 항목을 각각 독립 커밋·단계별 그린(tsc·ESLint·build·vitest 79/79)으로 마무리. [[project-philosophy]]
+
+- **P5-1 lib `export function`→화살표 스윕** (`e4d380f`): coins·finalize·home-data·challenge-state·gemini·supabase/{server,client} + home-data 내부 헬퍼. 전방 참조는 호출 시점 해소라 순서 조정 불필요. **이제 lib에 `function` 키워드 0개**(컴포넌트 아닌 것 전부 화살표 = §7 확정).
+- **P5-2 코인 reason 상수화** (`3e989a5`): `lib/coins.ts`에 `COIN_REASONS`(객체)+`CoinReason`(타입)+`RANK_REASONS`(등수→reason 맵) 신설, `awardCoins(reason: CoinReason)`로 시그니처 축소. 호출부 4곳(quiz·finalize·vote·submit) 한글 리터럴 제거. finalize의 `` `${rank}등 보상` `` 동적 리터럴은 RANK_REASONS 맵으로. **값 문자열 불변(과거 DB 기록과 일치)** → 테스트 목 3곳에 reason export 추가(목은 값 그대로라 어서션 무변경). **A-9 코인경제 모니터링의 선행 작업 완료** — 이제 reason별 집계 가능.
+- **P5-3 `lib/time.ts` 신설** (`a21616d`): KST 경계 단일화(`KST_OFFSET`·`kstToday`·`nextCalendarDay`·`kstISO`). quiz.ts(kstToday 로컬)·challenge-schedule.ts(KST_OFFSET·pad·nextCalendarDay·inline kstISO)·admin/quiz/route.ts(pad·nextCalendarDay 중복 + kstToday import 경로) 흡수.
+- **P5-4 import/스타일 교정** (`ec8dbb8`): ds/accordion·widgets/home/HomeBody·app/layout의 큰따옴표+세미콜론 → 작은따옴표+세미콜론없음. TS 문자열 리터럴도 작은따옴표, **JSX 속성 큰따옴표는 관례대로 유지**(Podium 등 준수 파일과 동일). 컴포넌트는 `function` 유지(올바름).
+- **P5-5 토큰 정리 + 2벌 구조 정정** (`fbac1d1`): Podium 인라인 `var(--color-*)` fallback → Tailwind 유틸(bg-bg-subtle·text-text-muted), 동적 메달 oklch만 인라인 잔류. **⚠️ 핵심 발견: globals.css "2번째 색 토큰 세트 삭제"는 불가로 확정.** `@theme inline`은 값을 유틸에 인라인하고 `--color-*` var를 **:root에 emit 안 함**(컴파일 CSS 확인). 생짜 CSS(body·scrollbar)+`color-mix` 임의값(badge·alert 다수, 앱 전반 라이브)이 이 `:root` 세트를 **런타임 var로 참조** → 지우면 런타임 깨짐(tsc/build/test 미감지). 애초 "Podium만 쓴다"는 §8 가정이 틀렸음. globals.css 주석 + ARCHITECTURE §5·§8에 근거 명문화. **두 세트는 값 동기화로 영구 유지.**
+- **P5-6 장식 글리프 정리** (`76e228f`): "✦ GEMINI 결과물" 5곳 동일 마크업 → `components/GeminiOutputLabel` 단일 출처. 실행 버튼 ⚡ 2곳(generate·seed) → `IconZap`(§3.2 컨트롤 아이콘=ds/icons). SeedClient "✦ 최근 추가된 결과물"은 단일·고유라 잔류.
+- **남은 단계**: P6 폴더 수렴(`hooks/`·`lib/<domain>/`·components colocation·`coins.ts`·`quiz.ts` 분해). 미push(사용자 직접).
 
 ## 현재 상태 (2026-06-16 11차 갱신) — 아키텍처 리팩토링 (P0~P4 완료)
 
