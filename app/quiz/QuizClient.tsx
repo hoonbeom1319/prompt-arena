@@ -1,28 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/ds/card'
 import RecoverModal from './RecoverModal'
-
-interface MyAnswer {
-  choice: 'O' | 'X'
-  is_correct: boolean
-  correct_answer: 'O' | 'X'
-  explanation: string
-}
-
-interface StreakInfo {
-  current: number
-  best: number
-}
-
-interface RecoverState {
-  recoverable: boolean
-  recoverableStreak: number
-  recoverCost: number
-  balance: number
-}
+import { useQuizGame, type MyAnswer, type StreakInfo, type RecoverState } from './useQuizGame'
 
 interface QuizClientProps {
   isLoggedIn: boolean
@@ -52,50 +33,19 @@ export default function QuizClient({
   initialRecover,
 }: QuizClientProps) {
   const router = useRouter()
-  const [answered, setAnswered] = useState(initialAnswered)
-  const [myAnswer, setMyAnswer] = useState<MyAnswer | null>(initialMyAnswer)
-  const [streak, setStreak] = useState<StreakInfo | null>(initialStreak)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const game = useQuizGame({
+    answered: initialAnswered,
+    myAnswer: initialMyAnswer,
+    streak: initialStreak,
+    recover: initialRecover,
+  })
 
-  // 연승 회복 (PRD v1.4 4.7.6) — 틀린 직후 제안 팝업. 새로고침 후에도 회복 가능하면(initialRecover) 다시 띄움.
-  const [recover, setRecover] = useState<RecoverState | null>(
-    initialRecover?.recoverable ? initialRecover : null
-  )
-  const [showRecover, setShowRecover] = useState(!!initialRecover?.recoverable)
-  const [recovered, setRecovered] = useState(false)
-  const [recoverLoading, setRecoverLoading] = useState(false)
-  const [recoverError, setRecoverError] = useState<string | null>(null)
-
-  const handleRecover = async () => {
-    if (recoverLoading) return
-    setRecoverLoading(true)
-    setRecoverError(null)
-    try {
-      const res = await fetch('/api/quiz/recover', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) {
-        // 코인 부족 등 — 잔액 갱신 후 안내 유지
-        if (typeof data.balance === 'number' && recover) {
-          setRecover({ ...recover, balance: data.balance })
-        }
-        setRecoverError(data.error ?? '회복에 실패했어요.')
-        return
-      }
-      setStreak(data.streak)
-      setRecovered(true)
-      setShowRecover(false)
-    } catch {
-      setRecoverError('네트워크 오류가 발생했어요.')
-    } finally {
-      setRecoverLoading(false)
+  const handleAnswer = (choice: 'O' | 'X') => {
+    if (!isLoggedIn) {
+      router.push('/auth/login')
+      return
     }
-  }
-
-  // 포기 = 연승 0 확정 (서버는 이미 0으로 기록됨, 소급 불가).
-  const handleDismissRecover = () => {
-    if (recoverLoading) return
-    setShowRecover(false)
+    game.answer(choice)
   }
 
   // 오늘 출제된 문항이 없는 날 (비축 소진 등) — 연승은 깨지지 않음
@@ -105,61 +55,16 @@ export default function QuizClient({
         <div className="text-5xl mb-4" aria-hidden="true">🌙</div>
         <p className="text-base text-text-muted">오늘은 퀴즈가 없어요.</p>
         <p className="text-sm text-text-muted mt-1">내일 다시 만나요!</p>
-        {streak && streak.current > 0 && (
-          <p className="text-sm text-text-secondary mt-4">현재 {streak.current}연승 유지 중 🔥</p>
+        {game.streak && game.streak.current > 0 && (
+          <p className="text-sm text-text-secondary mt-4">현재 {game.streak.current}연승 유지 중 🔥</p>
         )}
       </Card>
     )
   }
 
-  const handleAnswer = async (choice: 'O' | 'X') => {
-    if (!isLoggedIn) {
-      router.push('/auth/login')
-      return
-    }
-    if (answered || loading) return
-
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choice }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? '제출에 실패했어요.')
-        return
-      }
-      setMyAnswer({
-        choice,
-        is_correct: data.is_correct,
-        correct_answer: data.correct_answer,
-        explanation: data.explanation,
-      })
-      setStreak(data.streak)
-      setAnswered(true)
-      // 틀려서 끊긴 연승이 있으면 회복 제안 팝업 (그 자리에서만 결정 — PRD 4.7.6)
-      if (data.recoverable) {
-        setRecover({
-          recoverable: true,
-          recoverableStreak: data.recoverableStreak,
-          recoverCost: data.recoverCost,
-          balance: data.balance,
-        })
-        setShowRecover(true)
-      }
-    } catch {
-      setError('네트워크 오류가 발생했어요.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div>
-      {isLoggedIn && streak && <StreakBadge {...streak} />}
+      {isLoggedIn && game.streak && <StreakBadge {...game.streak} />}
 
       <Card className="p-6 mb-5">
         <p className="text-xs font-semibold text-accent mb-3">오늘의 O/X 퀴즈</p>
@@ -170,10 +75,10 @@ export default function QuizClient({
 
       <div className="grid grid-cols-2 gap-3">
         {(['O', 'X'] as const).map(opt => {
-          const isMyChoice = myAnswer?.choice === opt
-          const isAnswer = myAnswer?.correct_answer === opt
+          const isMyChoice = game.myAnswer?.choice === opt
+          const isAnswer = game.myAnswer?.correct_answer === opt
           // 채점 후 색: 정답=초록, 내가 고른 오답=빨강, 나머지=중립
-          const stateClass = !answered
+          const stateClass = !game.answered
             ? 'border-border bg-bg-card text-text-primary hover:border-accent hover:bg-bg-subtle'
             : isAnswer
             ? 'border-green-500 bg-green-500/10 text-green-600'
@@ -185,7 +90,7 @@ export default function QuizClient({
               key={opt}
               type="button"
               onClick={() => handleAnswer(opt)}
-              disabled={answered || loading}
+              disabled={game.answered || game.loading}
               className={`flex items-center justify-center h-28 rounded-lg border-2 text-5xl font-bold transition-colors disabled:cursor-default ${stateClass}`}
               aria-label={opt === 'O' ? '맞다 (O)' : '아니다 (X)'}
             >
@@ -195,49 +100,49 @@ export default function QuizClient({
         })}
       </div>
 
-      {error && <p className="text-sm text-red-500 text-center mt-4">{error}</p>}
+      {game.error && <p className="text-sm text-red-500 text-center mt-4">{game.error}</p>}
 
-      {answered && myAnswer && (
+      {game.answered && game.myAnswer && (
         <Card className="p-5 mt-5">
           <p className="text-base font-bold mb-2">
-            {myAnswer.is_correct ? (
+            {game.myAnswer.is_correct ? (
               <span className="text-green-600">정답이에요! 🎉</span>
             ) : (
-              <span className="text-red-500">아쉬워요, 정답은 {myAnswer.correct_answer} 예요.</span>
+              <span className="text-red-500">아쉬워요, 정답은 {game.myAnswer.correct_answer} 예요.</span>
             )}
           </p>
-          <p className="text-sm text-text-secondary leading-relaxed">{myAnswer.explanation}</p>
-          {streak && (
+          <p className="text-sm text-text-secondary leading-relaxed">{game.myAnswer.explanation}</p>
+          {game.streak && (
             <p className="text-sm text-text-muted mt-4">
-              {myAnswer.is_correct
-                ? `🔥 ${streak.current}연승! 내일도 만나요.`
-                : recovered
-                ? `🛡️ 코인으로 ${streak.current}연승을 지켰어요. 내일 맞히면 이어져요!`
+              {game.myAnswer.is_correct
+                ? `🔥 ${game.streak.current}연승! 내일도 만나요.`
+                : game.recovered
+                ? `🛡️ 코인으로 ${game.streak.current}연승을 지켰어요. 내일 맞히면 이어져요!`
                 : '연승이 초기화됐어요. 내일 다시 시작해요!'}
             </p>
           )}
           {/* 틀렸지만 회복 안 한 상태에서, 같은 날 다시 회복 팝업을 열 수 있는 진입점 */}
-          {!myAnswer.is_correct && !recovered && recover?.recoverable && !showRecover && (
+          {!game.myAnswer.is_correct && !game.recovered && game.recover?.recoverable && !game.showRecover && (
             <button
               type="button"
-              onClick={() => setShowRecover(true)}
+              onClick={game.openRecover}
               className="text-sm font-semibold text-accent mt-3 underline underline-offset-2"
             >
-              코인 {recover.recoverCost}개로 연승 지키기
+              코인 {game.recover.recoverCost}개로 연승 지키기
             </button>
           )}
         </Card>
       )}
 
-      {showRecover && recover && (
+      {game.showRecover && game.recover && (
         <RecoverModal
-          recoverableStreak={recover.recoverableStreak}
-          recoverCost={recover.recoverCost}
-          balance={recover.balance}
-          loading={recoverLoading}
-          error={recoverError}
-          onRecover={handleRecover}
-          onDismiss={handleDismissRecover}
+          recoverableStreak={game.recover.recoverableStreak}
+          recoverCost={game.recover.recoverCost}
+          balance={game.recover.balance}
+          loading={game.recoverLoading}
+          error={game.recoverError}
+          onRecover={game.recoverStreak}
+          onDismiss={game.dismissRecover}
         />
       )}
 
