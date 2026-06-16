@@ -5,6 +5,17 @@ metadata:
   type: project
 ---
 
+## 현재 상태 (2026-06-16 9차 갱신) — 아키텍처 리팩토링 (P0~P2 완료)
+
+"작동만 되게" 부채 정리. 사용자 진단(클라 직접 supabase·useState 폭발·아이콘 무체계·죽은 코드)에서 시작. **컨벤션을 먼저 문서로 못박고 단계별 수렴** 방식. 구조 모델은 *역할별 유지+두껍게*(FSD 아님), 데이터는 *커스텀 훅+API 라우트*, 함수 스타일은 *비컴포넌트 전부 화살표*로 확정. [[project-philosophy]]
+
+- **`docs/ARCHITECTURE.md` 신설** — 타깃 아키텍처·컨벤션·리팩토링 로드맵(P0~P6)의 단일 출처. `CLAUDE.md`에 `@docs/ARCHITECTURE.md` 연결돼 매 세션 로드됨. **새 코드는 이 문서를 따른다.**
+- **P0 컨벤션 확정** + **P1 죽은 코드 7개 삭제**: VoteCard·CoinDisplay·SubmissionCard·Header·AuthGuard·ChallengeHero + BadgeList(보류 뱃지 UI였으나 레거시 인라인 스타일이라 삭제, git에 남음). ⚠️ 감사가 TopicCard·CountdownCard·CountdownTimer를 죽었다 오판 → HomeBody가 사용 중이라 **유지**(검증으로 교정). **삭제 전 grep 검증 필수 교훈.**
+- **P2 데이터 접근 (완료)**: 클라이언트 supabase 직접 호출 제거. `generate`·`vote`·admin 폼 3개(seed·new·edit)를 **서버 컴포넌트(읽기) + 클라이언트 island(인터랙션/api)**로 분리. **저장소 클라 supabase는 이제 인증(login·LogoutButton)만**(ARCHITECTURE §2.3 예외). 쓰기는 전부 `/api`, 읽기는 서버컴포넌트(초기) vs `/api`(인터랙션 갱신) 케이스별.
+- **남은 단계 (미착수)**: P3 훅 추출(use<Domain>로 useState 뭉치 흡수 — `QuizClient` 11개부터, generate/vote island도), P4 `ds/icons`·`ds/modal` 신설(인라인 SVG·ad-hoc 모달 흡수), P5 토큰 단일화+import/파일명 교정+lib `export function`→화살표 스윕+코인 reason 상수+`lib/time`, P6 폴더 수렴(`hooks/`·`lib/<domain>/`·components colocation·coins.ts/quiz.ts 분해). **A-9 코인 경제 모니터링은 P5(reason 상수화) 이후.**
+- 커밋 `a1f363e`(P0+P1)·`2d74e43`(P2 generate)·`9393d81`(P2 vote)·`dbd1fb3`(P2 admin). 각 단계 tsc·빌드·vitest 79/79 그린. 미push.
+- ※ 아래 "리팩터링 진행 중 (2026-06-11)" Step 1/2/3 메모는 이 아키텍처 작업으로 **대체됨**(widgets/ 레이어는 유지).
+
 ## 현재 상태 (2026-06-16 8차 갱신) — PRD v1.4 연승 회복 (코인 첫 사용처) 구현
 
 PRD `docs/PRD/prompt-arena-prd-v1.4.md` 4.7.6 신규 기능 구현. v1.4의 핵심은 단 하나 — **코인이 적립만 → 적립+사용으로 전환, 첫 사용처=퀴즈 연승 회복.** 사용자 결정으로 **"연승 회복 코어만"** 범위(A-9 admin 코인경제 모니터링은 다음으로). [[project-philosophy]]
