@@ -1,57 +1,57 @@
-import Link from "next/link";
-import TopicCard from "@/components/TopicCard";
-import CountdownCard from "@/components/CountdownCard";
-import CountdownTimer from "@/components/CountdownTimer";
-import StatsRow from "@/components/StatsRow";
-import VoteTokens from "@/components/VoteTokens";
-import RankBadge from "@/components/RankBadge";
-import { Card } from "@/ds/card";
-import { Badge } from "@/ds/badge";
-import { Button } from "@/ds/button";
-import { type ChallengeState } from "@/lib/challenge-state";
-import { MAX_GENERATIONS, MAX_VOTES } from "@/lib/constants";
-import type { TopRankEntry, NextChallengePreview } from "@/lib/home-data";
-import { IconUsers, IconLock, IconMoon, IconCheck, IconTrophy } from "@/ds/icons";
+import Link from 'next/link'
+import TopicCard from '@/components/TopicCard'
+import CountdownCard from '@/components/CountdownCard'
+import CountdownTimer from '@/components/CountdownTimer'
+import StatsRow from '@/components/StatsRow'
+import VoteTokens from '@/components/VoteTokens'
+import RankBadge from '@/components/RankBadge'
+import { Card } from '@/ds/card'
+import { Badge } from '@/ds/badge'
+import { Button } from '@/ds/button'
+import { type ChallengeState } from '@/lib/challenge-state'
+import { MAX_GENERATIONS, MAX_VOTES } from '@/lib/constants'
+import type { TopRankEntry, NextChallengePreview } from '@/lib/home-data'
+import { IconUsers, IconLock, IconMoon, IconCheck, IconTrophy } from '@/ds/icons'
 
 interface ChallengeInfo {
-  id: string;
-  title: string;
-  instruction: string;
-  category?: string | null;
-  votingStartAt?: string | null;
+  id: string
+  title: string
+  instruction: string
+  category?: string | null
+  votingStartAt?: string | null
 }
 
 interface Stats {
-  participants: number;
-  submissions: number;
-  totalVotes: number;
+  participants: number
+  submissions: number
+  totalVotes: number
 }
 
 interface UserInfo {
-  id: string;
-  genCount: number;
-  voteCount: number;
-  submissionId?: string | null;
-  rank?: number | null;
-  votes?: number | null;
+  id: string
+  genCount: number
+  voteCount: number
+  submissionId?: string | null
+  rank?: number | null
+  votes?: number | null
 }
 
 interface HomeBodyProps {
-  state: ChallengeState;
-  challenge?: ChallengeInfo;
-  countdown?: { target: string; label: string } | null;
-  stats?: Stats;
-  user?: UserInfo | null;
-  top3?: TopRankEntry[];
-  nextChallenge?: NextChallengePreview | null;
+  state: ChallengeState
+  challenge?: ChallengeInfo
+  countdown?: { target: string; label: string } | null
+  stats?: Stats
+  user?: UserInfo | null
+  top3?: TopRankEntry[]
+  nextChallenge?: NextChallengePreview | null
 }
 
 function UserStatusCard({
   state,
   user,
 }: {
-  state: ChallengeState;
-  user?: UserInfo | null;
+  state: ChallengeState
+  user?: UserInfo | null
 }) {
   if (!user) {
     return (
@@ -61,10 +61,10 @@ function UserStatusCard({
           구경 중 — 로그인하면 내 상태가 표시돼요
         </div>
       </Card>
-    );
+    )
   }
 
-  if (state === "submission") {
+  if (state === 'submission') {
     return (
       <Card className="p-3">
         <div className="flex items-center justify-between">
@@ -76,10 +76,10 @@ function UserStatusCard({
           )}
         </div>
       </Card>
-    );
+    )
   }
 
-  if (state === "voting") {
+  if (state === 'voting') {
     return (
       <Card className="p-3">
         <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ function UserStatusCard({
           </span>
         </div>
       </Card>
-    );
+    )
   }
 
   return (
@@ -106,12 +106,12 @@ function UserStatusCard({
         )}
       </div>
     </Card>
-  );
+  )
 }
 
 function NextTopicCard({ next }: { next: NextChallengePreview }) {
-  const startDate = new Date(next.startAt);
-  const label = `${startDate.getMonth() + 1}/${startDate.getDate()} 시작`;
+  const startDate = new Date(next.startAt)
+  const label = `${startDate.getMonth() + 1}/${startDate.getDate()} 시작`
 
   return (
     <Card className="p-4 bg-bg-subtle">
@@ -130,7 +130,7 @@ function NextTopicCard({ next }: { next: NextChallengePreview }) {
         </p>
       )}
     </Card>
-  );
+  )
 }
 
 // 투표 단계 — 3표를 다 쓰기 전엔 다음 주제를 가린 채 동기만 보여준다.
@@ -153,10 +153,10 @@ function LockedNextTopicCard({ votesUsed }: { votesUsed: number }) {
         투표 {MAX_VOTES}개를 모두 하면 다음 주 주제가 공개돼요 ({votesUsed}/{MAX_VOTES})
       </p>
     </Card>
-  );
+  )
 }
 
-const anonLabel = (id: string) => id.replace(/-/g, "").slice(0, 3);
+const anonLabel = (id: string) => id.replace(/-/g, '').slice(0, 3)
 
 export default function HomeBody({
   state,
@@ -167,7 +167,7 @@ export default function HomeBody({
   top3 = [],
   nextChallenge,
 }: HomeBodyProps) {
-  if (state === "idle" || !challenge) {
+  if (state === 'idle' || !challenge) {
     return (
       <div className="flex flex-col items-center text-center py-8 gap-4">
         <div className="w-16 h-16 rounded-full bg-bg-base text-text-muted flex items-center justify-center">
@@ -190,7 +190,7 @@ export default function HomeBody({
           <Link href="/archive">지난 결과 보기</Link>
         </Button>
       </div>
-    );
+    )
   }
 
   return (
@@ -201,7 +201,7 @@ export default function HomeBody({
         instruction={challenge.instruction}
       />
 
-      {state === "submission" && (
+      {state === 'submission' && (
         <>
           {countdown && (
             <CountdownCard
@@ -211,10 +211,10 @@ export default function HomeBody({
           )}
           <StatsRow
             stats={[
-              { value: String(stats?.participants ?? 0), label: "참가자" },
+              { value: String(stats?.participants ?? 0), label: '참가자' },
               {
                 value: `${user?.genCount ?? 0}/${MAX_GENERATIONS}`,
-                label: "내 시도",
+                label: '내 시도',
               },
             ]}
           />
@@ -250,7 +250,7 @@ export default function HomeBody({
                   href={
                     user
                       ? `/challenge/${challenge.id}/generate`
-                      : "/auth/login"
+                      : '/auth/login'
                   }
                 >
                   프롬프트 만들기
@@ -280,24 +280,24 @@ export default function HomeBody({
                 <div className="flex flex-col gap-3.5">
                   {[
                     {
-                      step: "1",
-                      title: "프롬프트 작성",
+                      step: '1',
+                      title: '프롬프트 작성',
                       desc: `챌린지 주제에 맞는 AI 프롬프트를 작성해요. 최대 ${MAX_GENERATIONS}번 시도할 수 있어요.`,
                     },
                     {
-                      step: "2",
-                      title: "AI 응답 확인",
-                      desc: "Gemini AI가 내 프롬프트로 응답을 생성해요. 마음에 드는 걸 골라 제출하세요.",
+                      step: '2',
+                      title: 'AI 응답 확인',
+                      desc: 'Gemini AI가 내 프롬프트로 응답을 생성해요. 마음에 드는 걸 골라 제출하세요.',
                     },
                     {
-                      step: "3",
-                      title: "투표 참여",
-                      desc: "제출 기간이 끝나면 다른 참가자들의 결과물에 투표할 수 있어요.",
+                      step: '3',
+                      title: '투표 참여',
+                      desc: '제출 기간이 끝나면 다른 참가자들의 결과물에 투표할 수 있어요.',
                     },
                     {
-                      step: "4",
-                      title: "순위 & 코인",
-                      desc: "투표로 순위가 결정되고, 순위에 따라 코인이 지급돼요.",
+                      step: '4',
+                      title: '순위 & 코인',
+                      desc: '투표로 순위가 결정되고, 순위에 따라 코인이 지급돼요.',
                     },
                   ].map((item) => (
                     <div key={item.step} className="flex gap-3">
@@ -323,11 +323,11 @@ export default function HomeBody({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { label: "프롬프트 제출", coins: "+5" },
-                    { label: "투표 1회", coins: "+1" },
-                    { label: "1등", coins: "+100" },
-                    { label: "2등", coins: "+50" },
-                    { label: "3등", coins: "+25" },
+                    { label: '프롬프트 제출', coins: '+5' },
+                    { label: '투표 1회', coins: '+1' },
+                    { label: '1등', coins: '+100' },
+                    { label: '2등', coins: '+50' },
+                    { label: '3등', coins: '+25' },
                   ].map((item) => (
                     <div
                       key={item.label}
@@ -346,7 +346,7 @@ export default function HomeBody({
         </>
       )}
 
-      {state === "voting" && (
+      {state === 'voting' && (
         <>
           <Card className="p-3">
             <div className="flex items-center justify-between mb-2.5">
@@ -355,7 +355,7 @@ export default function HomeBody({
               </span>
               {countdown && (
                 <span className="text-xs text-text-muted">
-                  투표 마감{" "}
+                  투표 마감{' '}
                   <CountdownTimer targetTime={countdown.target} label="" /> 남음
                 </span>
               )}
@@ -369,14 +369,14 @@ export default function HomeBody({
           </Card>
           <StatsRow
             stats={[
-              { value: String(stats?.submissions ?? 0), label: "출품작" },
-              { value: String(stats?.totalVotes ?? 0), label: "누적 투표" },
+              { value: String(stats?.submissions ?? 0), label: '출품작' },
+              { value: String(stats?.totalVotes ?? 0), label: '누적 투표' },
             ]}
           />
           <UserStatusCard state={state} user={user} />
           <Button asChild variant="primary" size="lg" className="w-full">
             <Link
-              href={user ? `/challenge/${challenge.id}/vote` : "/auth/login"}
+              href={user ? `/challenge/${challenge.id}/vote` : '/auth/login'}
             >
               투표하러 가기
             </Link>
@@ -391,7 +391,7 @@ export default function HomeBody({
         </>
       )}
 
-      {state === "results" && (
+      {state === 'results' && (
         <>
           {top3.length > 0 && (
             <Card className="p-4">
@@ -428,5 +428,5 @@ export default function HomeBody({
         </>
       )}
     </div>
-  );
+  )
 }

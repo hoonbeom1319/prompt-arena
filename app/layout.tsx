@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-import NextTopLoader from "nextjs-toploader";
-import { Toaster } from "sonner";
-import "./globals.css";
+import type { Metadata } from 'next'
+import NextTopLoader from 'nextjs-toploader'
+import { Toaster } from 'sonner'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "프롬프트 아레나 — AI 프롬프트 대회",
-  description: "최고의 AI 프롬프트를 만들고 경쟁하세요. 매일 새로운 챌린지에 참여하세요.",
-};
+  title: '프롬프트 아레나 — AI 프롬프트 대회',
+  description: '최고의 AI 프롬프트를 만들고 경쟁하세요. 매일 새로운 챌린지에 참여하세요.',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="ko" className="h-full">
@@ -21,5 +21,5 @@ export default function RootLayout({
         <Toaster position="bottom-center" richColors />
       </body>
     </html>
-  );
+  )
 }
