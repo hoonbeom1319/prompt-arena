@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { IconChevronRight } from "@/ds/icons";
 
 /**
  * 높이 애니메이션이 들어간 아코디언.
@@ -77,24 +78,11 @@ export function Accordion({
 
 function Chevron({ open }: { open: boolean }) {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
+    <IconChevronRight
       className={cn(
         "text-text-muted shrink-0 transition-transform duration-300",
         open && "rotate-90",
       )}
-      aria-hidden="true"
-    >
-      <path
-        d="M9 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    />
   );
 }

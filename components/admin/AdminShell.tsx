@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { IconGear } from '@/ds/icons'
 
 const NAV_ITEMS = [
   { href: '/admin', label: '대시보드', exact: true },
@@ -31,10 +32,7 @@ export default function AdminShell({ children }: AdminShellProps) {
           aria-label="관리자 메뉴"
         >
           <div className="flex items-center gap-2 px-3 py-2.5 mb-2 text-sm font-bold text-accent">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <IconGear />
             운영자
           </div>
 

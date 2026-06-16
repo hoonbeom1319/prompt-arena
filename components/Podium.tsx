@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { getMedalColor } from '@/lib/rank-colors'
+import { IconTrophy } from '@/ds/icons'
 
 interface PodiumEntry {
   id: string
@@ -35,11 +36,7 @@ export default function Podium({ entries }: PodiumProps) {
         const medal = getMedalColor(entry.rank)
         return (
           <div key={entry.id} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-            {isFirst && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
-                <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7zM9 4V3h6v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+            {isFirst && <IconTrophy width={18} height={18} className="text-accent" />}
             <div
               className={cn(
                 'rounded-full flex items-center justify-center font-bold border border-border',

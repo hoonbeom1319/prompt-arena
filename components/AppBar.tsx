@@ -6,6 +6,7 @@ import { Badge } from '@/ds/badge'
 import type { VariantProps } from 'class-variance-authority'
 import { badgeVariants } from '@/ds/badge'
 import { navTabs } from '@/components/TabBar'
+import { IconChevronLeft } from '@/ds/icons'
 import { cn } from '@/lib/utils'
 
 interface AppBarProps {
@@ -36,9 +37,7 @@ export default function AppBar({ title, showBack, backHref, statusLabel, statusV
               aria-label="뒤로 가기"
               className="w-8 h-8 flex items-center justify-center rounded-md text-text-primary hover:bg-bg-base transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <IconChevronLeft />
             </button>
           )}
         </div>

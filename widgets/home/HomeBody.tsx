@@ -11,6 +11,7 @@ import { Button } from "@/ds/button";
 import { type ChallengeState } from "@/lib/challenge-state";
 import { MAX_GENERATIONS, MAX_VOTES } from "@/lib/constants";
 import type { TopRankEntry, NextChallengePreview } from "@/lib/home-data";
+import { IconUsers, IconLock, IconMoon, IconCheck, IconTrophy } from "@/ds/icons";
 
 interface ChallengeInfo {
   id: string;
@@ -56,28 +57,7 @@ function UserStatusCard({
     return (
       <Card className="p-3">
         <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-text-faint shrink-0"
-            aria-hidden="true"
-          >
-            <path
-              d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <circle
-              cx="12"
-              cy="7"
-              r="4"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </svg>
+          <IconUsers className="text-text-faint shrink-0" />
           구경 중 — 로그인하면 내 상태가 표시돼요
         </div>
       </Card>
@@ -162,10 +142,7 @@ function LockedNextTopicCard({ votesUsed }: { votesUsed: number }) {
           다음 주제 예고
         </span>
         <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2" />
-          </svg>
+          <IconLock width={12} height={12} />
           가림
         </span>
       </div>
@@ -194,20 +171,7 @@ export default function HomeBody({
     return (
       <div className="flex flex-col items-center text-center py-8 gap-4">
         <div className="w-16 h-16 rounded-full bg-bg-base text-text-muted flex items-center justify-center">
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          <IconMoon width={30} height={30} />
         </div>
         <div>
           <h2 className="text-lg font-bold text-text-primary">
@@ -260,21 +224,7 @@ export default function HomeBody({
             <>
               <Card className="p-6 flex flex-col items-center text-center gap-3 bg-accent-light">
                 <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center">
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 6L9 17l-5-5"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <IconCheck width={28} height={28} strokeWidth={2.5} className="text-white" />
                 </div>
                 <div>
                   <div className="text-[17px] font-bold text-text-primary">
@@ -447,20 +397,7 @@ export default function HomeBody({
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="flex items-center gap-1.5 text-accent text-[11px] font-semibold uppercase tracking-wider">
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <IconTrophy width={17} height={17} />
                   TOP 3
                 </span>
                 <span className="text-xs text-text-muted">최종 집계</span>

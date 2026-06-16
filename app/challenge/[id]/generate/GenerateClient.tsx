@@ -8,6 +8,7 @@ import { Textarea } from '@/ds/input'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 import Modal from '@/ds/modal'
+import { IconZap, IconCheck } from '@/ds/icons'
 import { useGeneration, type Generation } from './useGeneration'
 
 interface GenerateClientProps {
@@ -65,9 +66,7 @@ export default function GenerateClient({
       {/* 결과물 — run control 위 */}
       {gen.generations.length === 0 ? (
         <Card className="p-8 text-center text-text-faint">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="mx-auto" aria-hidden="true">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <IconZap className="mx-auto" />
           <p className="text-sm mt-2">실행하면 결과물이 여기에 표시돼요</p>
         </Card>
       ) : gen.activeGen && (
@@ -118,9 +117,7 @@ export default function GenerateClient({
                     <div className="flex items-center justify-between mb-1.5">
                       <b className="text-xs">시도 {g.attempt_number}</b>
                       {gen.activeGenId === g.id && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-accent" aria-hidden="true">
-                          <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <IconCheck width={14} height={14} className="text-accent" />
                       )}
                     </div>
                     <div className="text-xs text-text-muted leading-snug h-[54px] overflow-hidden">

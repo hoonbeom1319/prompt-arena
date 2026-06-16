@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import RankBadge from '@/components/RankBadge'
+import { IconChevronDown } from '@/ds/icons'
 import { cn } from '@/lib/utils'
 
 interface RankedSub {
@@ -58,13 +59,9 @@ export default function ResultList({ subs }: { subs: RankedSub[] }) {
                   <span className="block text-[10px] text-text-faint tabular-nums">{sub.attemptNumber}회 시도</span>
                 )}
               </span>
-              <svg
-                width="14" height="14" viewBox="0 0 24 24" fill="none"
+              <IconChevronDown
                 className={cn('text-text-muted transition-transform duration-200 shrink-0', isOpen && 'rotate-180')}
-                aria-hidden="true"
-              >
-                <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              />
             </button>
 
             <div

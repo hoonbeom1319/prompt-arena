@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import AiSummary from '@/components/AiSummary'
 import { Button } from '@/ds/button'
 import { Card } from '@/ds/card'
+import { IconLock } from '@/ds/icons'
 import { cn } from '@/lib/utils'
 import { MAX_VOTES } from '@/lib/constants'
 
@@ -88,10 +89,7 @@ export default function BlindCard({
           <div className="flex items-center gap-2">
             {!promptsUnlocked && (
               <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2"/>
-                </svg>
+                <IconLock width={12} height={12} />
                 가림
               </span>
             )}
@@ -111,10 +109,7 @@ export default function BlindCard({
               className="border border-dashed border-border rounded-lg py-5 flex flex-col items-center gap-2"
               style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.03) 5px, rgba(0,0,0,0.03) 10px)' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-text-muted" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.5"/>
-              </svg>
+              <IconLock strokeWidth={1.5} className="text-text-muted" />
               <p className="text-sm text-text-muted">
                 3표를 모두 행사하면 공개돼요 ({votesUsed}/{MAX_VOTES})
               </p>

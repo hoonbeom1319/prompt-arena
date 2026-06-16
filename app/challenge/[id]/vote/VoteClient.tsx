@@ -8,6 +8,7 @@ import { MAX_VOTES } from '@/lib/constants'
 import { Card } from '@/ds/card'
 import { Button } from '@/ds/button'
 import { cn } from '@/lib/utils'
+import { IconCheck, IconLock } from '@/ds/icons'
 import { useVoting } from './useVoting'
 
 interface VoteClientProps {
@@ -139,9 +140,7 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
                           aria-label="투표한 출품작"
                           title="투표함"
                         >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                          <IconCheck width={10} height={10} strokeWidth={3} className="text-white" />
                         </span>
                       )}
                     </button>
@@ -173,10 +172,7 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
                         className="border border-dashed border-border rounded-lg py-5 flex flex-col items-center gap-2"
                         style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.03) 5px, rgba(0,0,0,0.03) 10px)' }}
                       >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-text-muted" aria-hidden="true">
-                          <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.5"/>
-                        </svg>
+                        <IconLock strokeWidth={1.5} className="text-text-muted" />
                         <p className="text-sm text-text-muted">
                           3표를 모두 행사하면 공개돼요 ({v.votesUsed}/{MAX_VOTES})
                         </p>

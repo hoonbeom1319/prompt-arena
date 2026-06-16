@@ -7,6 +7,7 @@ import ResultList from './ResultList'
 import { rankSubmissions } from '@/lib/ranking'
 import { getChallengeState } from '@/lib/challenge-state'
 import { Card } from '@/ds/card'
+import { IconTrophy } from '@/ds/icons'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -181,9 +182,7 @@ export default async function ResultsPage({ params }: PageProps) {
       <main className="max-w-[430px] md:max-w-2xl mx-auto px-4 pt-4 md:pt-6 pb-8 md:pb-10 flex flex-col gap-3.5">
         <div className="text-center">
           <div className="flex justify-center text-accent mb-1">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <IconTrophy />
           </div>
           <h2 className="text-[22px] font-extrabold text-text-primary tracking-tight">최종 결과</h2>
           <p className="text-xs text-text-muted mt-1">&ldquo;{challenge.title}&rdquo;</p>
@@ -194,9 +193,7 @@ export default async function ResultsPage({ params }: PageProps) {
         {winner && (
           <Card className="p-4 border-accent-mid">
             <div className="flex items-center gap-1.5 text-accent text-[15px] font-semibold mb-3">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <IconTrophy width={15} height={15} />
               우승작
             </div>
             {winner.prompt_text && (
