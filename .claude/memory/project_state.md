@@ -9,9 +9,9 @@ metadata:
 
 PRD `docs/PRD/prompt-arena-prd-v1.4.md` 4.7.6 신규 기능 구현. v1.4의 핵심은 단 하나 — **코인이 적립만 → 적립+사용으로 전환, 첫 사용처=퀴즈 연승 회복.** 사용자 결정으로 **"연승 회복 코어만"** 범위(A-9 admin 코인경제 모니터링은 다음으로). [[project-philosophy]]
 
-### DB 마이그레이션 — ⚠️ 미적용 (배포 전 사용자가 실행 필요)
+### DB 마이그레이션 — 적용 완료 (2026-06-16, 사용자가 실행)
 
-`supabase/migrate-v1.4-streak-recovery.sql` — `streaks`에 컬럼 2개 추가:
+`supabase/migrate-v1.4-streak-recovery.sql` 실행됨 → `streaks`에 컬럼 2개 추가:
 - `recoverable_streak integer` (틀려서 끊긴 직전 연승값, >0이면 회복 대상)
 - `recoverable_date date` (틀린 게시일 — 오늘 문항 게시일과 같을 때만 회복 허용 = **소급 불가**의 구현)
 `schema.sql`도 동기화함(streaks 정의). **coin_transactions는 변경 없음** — 사용(차감)은 기존 원장에 음수 `amount`로 기록(첫 음수 거래, reason `'연승 회복'`).
@@ -34,8 +34,8 @@ PRD `docs/PRD/prompt-arena-prd-v1.4.md` 4.7.6 신규 기능 구현. v1.4의 핵�
 
 ### 남은 일
 
-- **마이그레이션 실행**: 사용자가 `migrate-v1.4-streak-recovery.sql`을 Supabase SQL editor에 적용 후 push(배포). 미적용 시 `recoverable_*` 컬럼 없어 500.
-- **로컬 미검증**: 실동작(오답→팝업→코인차감→복원)은 마이그레이션+문항 등록 후 확인 필요.
+- **push 대기**: 커밋 `43e37a6` 완료, 프로덕션 빌드 통과(새 라우트 `/api/quiz/recover` 등록 확인). 마이그레이션 적용됐으니 push 안전. **push는 사용자가 직접**(Vercel 자동 배포).
+- **로컬 미검증**: 실동작(오답→팝업→코인차감→복원)은 문항 등록된 날 확인 필요.
 - **A-9 admin 코인경제 모니터링**: 이번 범위 제외. 적립vs사용·회복사용률·"퀴즈 누적<챌린지 우승" 부등호 감시 — 다음 사이클.
 
 ---
