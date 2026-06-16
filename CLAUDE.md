@@ -1,5 +1,6 @@
 @AGENTS.md
 @.claude/memory/MEMORY.md
+@docs/ARCHITECTURE.md
 
 # 프로젝트 철학
 
