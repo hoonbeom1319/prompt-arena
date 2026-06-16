@@ -14,12 +14,12 @@ export default function TermsPage() {
         <p className="text-xs text-text-faint mb-8">시행일: 2026년 6월 11일</p>
 
         <Section title="제1조 (목적)">
-          이 약관은 프롬프트 아레나(이하 "서비스")의 이용 조건 및 절차, 이용자와 운영자의 권리·의무·책임 사항을 규정합니다.
+          이 약관은 프롬프트 아레나(이하 &quot;서비스&quot;)의 이용 조건 및 절차, 이용자와 운영자의 권리·의무·책임 사항을 규정합니다.
         </Section>
 
         <Section title="제2조 (정의)">
           <ul className="list-disc pl-4 flex flex-col gap-1">
-            <li><b>서비스</b>: AI 프롬프트 경진대회 플랫폼 "프롬프트 아레나"</li>
+            <li><b>서비스</b>: AI 프롬프트 경진대회 플랫폼 &quot;프롬프트 아레나&quot;</li>
             <li><b>이용자</b>: 서비스에 접속하여 이 약관에 따라 서비스를 이용하는 자</li>
             <li><b>챌린지</b>: 서비스 내 진행되는 AI 프롬프트 작성 대회 단위</li>
             <li><b>출품작</b>: 이용자가 제출한 프롬프트 및 AI 생성 결과물</li>

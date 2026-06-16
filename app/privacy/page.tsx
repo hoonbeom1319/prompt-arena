@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <p className="text-xs text-text-faint mb-8">시행일: 2026년 6월 11일</p>
 
         <p className="text-sm text-text-secondary leading-[1.8] mb-8">
-          프롬프트 아레나(이하 "서비스")는 개인정보보호법에 따라 이용자의 개인정보를 보호하고, 이와 관련한 고충을 신속하게 처리하기 위해 다음과 같이 개인정보처리방침을 수립·공개합니다.
+          프롬프트 아레나(이하 &quot;서비스&quot;)는 개인정보보호법에 따라 이용자의 개인정보를 보호하고, 이와 관련한 고충을 신속하게 처리하기 위해 다음과 같이 개인정보처리방침을 수립·공개합니다.
         </p>
 
         <Section title="1. 수집하는 개인정보">
