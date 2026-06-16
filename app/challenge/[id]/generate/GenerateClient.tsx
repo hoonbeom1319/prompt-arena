@@ -7,6 +7,7 @@ import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
+import Modal from '@/ds/modal'
 import { useGeneration, type Generation } from './useGeneration'
 
 interface GenerateClientProps {
@@ -185,28 +186,26 @@ export default function GenerateClient({
       )}
 
       {showConfirm && selectedGenId && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-title"
-          className="fixed inset-0 bg-black/45 flex items-end md:items-center justify-center z-[200] p-4"
+        <Modal
+          onClose={() => setShowConfirm(false)}
+          labelledBy="confirm-title"
+          placement="sheet"
+          className="p-6 max-w-[430px]"
         >
-          <Card className="p-6 max-w-[430px] w-full rounded-t-xl md:rounded-xl animate-[sheet-up_240ms_var(--ease-spring)]">
-            <div className="w-10 h-1 bg-border-strong rounded-full mx-auto mb-4 md:hidden" />
-            <h3 id="confirm-title" className="text-lg font-bold mb-2">제출하면 수정·삭제할 수 없어요</h3>
-            <p className="text-sm text-text-secondary mb-5 leading-relaxed">
-              계속할까요? 선택한 결과물로 챌린지에 참여하게 됩니다.
-            </p>
-            <div className="flex gap-2.5">
-              <Button variant="ghost" onClick={() => setShowConfirm(false)} className="flex-1">
-                취소
-              </Button>
-              <Button variant="primary" onClick={handleSubmit} disabled={gen.submitting} className="flex-1">
-                {gen.submitting ? '제출 중...' : '제출 확정'}
-              </Button>
-            </div>
-          </Card>
-        </div>
+          <div className="w-10 h-1 bg-border-strong rounded-full mx-auto mb-4 md:hidden" />
+          <h3 id="confirm-title" className="text-lg font-bold mb-2">제출하면 수정·삭제할 수 없어요</h3>
+          <p className="text-sm text-text-secondary mb-5 leading-relaxed">
+            계속할까요? 선택한 결과물로 챌린지에 참여하게 됩니다.
+          </p>
+          <div className="flex gap-2.5">
+            <Button variant="ghost" onClick={() => setShowConfirm(false)} className="flex-1">
+              취소
+            </Button>
+            <Button variant="primary" onClick={handleSubmit} disabled={gen.submitting} className="flex-1">
+              {gen.submitting ? '제출 중...' : '제출 확정'}
+            </Button>
+          </div>
+        </Modal>
       )}
     </main>
   )
