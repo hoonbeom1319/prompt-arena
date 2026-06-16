@@ -106,6 +106,7 @@ vi.mock('@/lib/coins', () => ({
   awardCoins: (...args: unknown[]) => mockAwardCoins(...args),
   checkAndAwardBadge: (...args: unknown[]) => mockCheckAndAwardBadge(...args),
   COIN_AMOUNTS: { SUBMIT_PROMPT: 5, CAST_VOTE: 1, RANK_1: 100, RANK_2: 50, RANK_3: 25 },
+  RANK_REASONS: { 1: '1등 보상', 2: '2등 보상', 3: '3등 보상' },
 }))
 
 vi.mock('next/headers', () => ({

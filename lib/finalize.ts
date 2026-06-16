@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { rankSubmissions } from '@/lib/ranking'
-import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from '@/lib/coins'
+import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS, RANK_REASONS } from '@/lib/coins'
 
 export interface FinalizeResult {
   skipped: boolean
@@ -79,7 +79,7 @@ export const finalizeChallenge = async (
     }
 
     if (sub.rank <= 3 && coinAmounts[sub.rank]) {
-      await awardCoins(serviceSupabase, sub.user_id, coinAmounts[sub.rank], `${sub.rank}등 보상`, challengeId)
+      await awardCoins(serviceSupabase, sub.user_id, coinAmounts[sub.rank], RANK_REASONS[sub.rank], challengeId)
 
       if (sub.rank === 1) {
         await checkAndAwardBadge(serviceSupabase, sub.user_id, 'first_win')

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { after } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
-import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS } from '@/lib/coins'
+import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS, COIN_REASONS } from '@/lib/coins'
 import { scheduleSubmissionSummary } from '@/lib/summary'
 
 export async function POST(request: NextRequest) {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     // 실패해도 제출은 유효하다(우아한 실패). 이로써 제출 응답의 왕복 수를 크게 줄인다.
     const rewardAfterSubmit = async () => {
       try {
-        await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, '프롬프트 제출', challengeId)
+        await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.SUBMIT_PROMPT, COIN_REASONS.SUBMIT_PROMPT, challengeId)
 
         const { count: submissionCount } = await serviceSupabase
           .from('submissions')

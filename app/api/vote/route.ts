@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
-import { awardCoins, COIN_AMOUNTS } from '@/lib/coins'
+import { awardCoins, COIN_AMOUNTS, COIN_REASONS } from '@/lib/coins'
 import { seededShuffle } from '@/lib/shuffle'
 
 const MAX_VOTES = 3
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Award coin
-    await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.CAST_VOTE, '투표 참여', challengeId)
+    await awardCoins(serviceSupabase, user.id, COIN_AMOUNTS.CAST_VOTE, COIN_REASONS.CAST_VOTE, challengeId)
 
     const newVoteCount = (voteCount ?? 0) + 1
 

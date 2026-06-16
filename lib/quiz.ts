@@ -7,7 +7,7 @@
 //  - 정답·해설은 응답 전 클라이언트에 노출 금지 → 이 모듈은 service-role 클라이언트로만 호출한다.
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { awardCoins, COIN_AMOUNTS, recoveryCost } from './coins'
+import { awardCoins, COIN_AMOUNTS, COIN_REASONS, recoveryCost } from './coins'
 
 // 정답을 맞혔을 때의 새 연승 값 (순수 함수 — 테스트 대상).
 //  - prevPublishDate: 오늘 이전 '출제된' 가장 최근 날짜 (출제 공백은 건너뛴 값).
@@ -220,7 +220,7 @@ export const submitQuizAnswer = async (
     )
 
     // 매일 정답 소액 보상 (마일스톤 뱃지·보너스는 사용자 결정으로 제외 — 연승 숫자 자체가 보상)
-    await awardCoins(service, userId, COIN_AMOUNTS.QUIZ_CORRECT_DAILY, '퀴즈 정답')
+    await awardCoins(service, userId, COIN_AMOUNTS.QUIZ_CORRECT_DAILY, COIN_REASONS.QUIZ_CORRECT)
     coinsAwarded = COIN_AMOUNTS.QUIZ_CORRECT_DAILY
   } else {
     // 틀리면 0으로 초기화. last_correct_date는 그대로 둬서 다음 정답일에 연속이 끊긴 것으로 판정.
@@ -304,7 +304,7 @@ export const recoverStreak = async (
   }
 
   // 코인 차감 (첫 음수 거래) → 연승 복원. 차감 후 잔액 음수 방지는 위 사전 체크로 보장.
-  await awardCoins(service, userId, -cost, '연승 회복')
+  await awardCoins(service, userId, -cost, COIN_REASONS.STREAK_RECOVERY)
 
   const restored = recoverable
   await service.from('streaks').upsert(

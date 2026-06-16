@@ -11,6 +11,28 @@ export const COIN_AMOUNTS = {
   QUIZ_CORRECT_DAILY: 1,
 } as const
 
+// 코인 거래 사유(reason) 단일 출처 — DB `coin_transactions.reason`에 그대로 기록된다.
+// 호출부의 한글 리터럴 산재를 막고, A-9(코인 경제 모니터링)가 reason별로 집계할 수 있게 한다.
+// PRD 6.1 라벨 체계(적립/사용·출처)와 정렬. ⚠️ 값 문자열은 과거 기록과 일치해야 하므로 바꾸지 말 것.
+export const COIN_REASONS = {
+  SUBMIT_PROMPT: '프롬프트 제출',
+  CAST_VOTE: '투표 참여',
+  QUIZ_CORRECT: '퀴즈 정답',
+  STREAK_RECOVERY: '연승 회복', // 첫 음수(사용) 거래
+  RANK_1: '1등 보상',
+  RANK_2: '2등 보상',
+  RANK_3: '3등 보상',
+} as const
+
+export type CoinReason = (typeof COIN_REASONS)[keyof typeof COIN_REASONS]
+
+// 순위 보상 reason — finalize가 등수로 조회한다 (1·2·3위 외엔 보상 없음).
+export const RANK_REASONS: Record<number, CoinReason> = {
+  1: COIN_REASONS.RANK_1,
+  2: COIN_REASONS.RANK_2,
+  3: COIN_REASONS.RANK_3,
+}
+
 // 연승 회복 비용 계수 N (PRD v1.4 4.7.6 — 코인 첫 사용처).
 // 회복 비용 = 끊긴 직전 연승 길이 × N. 시작값 1.
 // 주의: N=1이면 길게 쌓은 사람은 벌어둔 코인으로 거의 공짜 회복 → 회복 사용률이 과하면 상향.
@@ -23,7 +45,7 @@ export const awardCoins = async (
   supabase: SupabaseClient,
   userId: string,
   amount: number,
-  reason: string,
+  reason: CoinReason,
   challengeId?: string
 ) => {
   // Insert transaction
