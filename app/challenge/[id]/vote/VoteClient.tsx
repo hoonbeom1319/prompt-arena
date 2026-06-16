@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import AiSummary from '@/components/AiSummary'
 import BlindCard from '@/components/BlindCard'
+import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import VoteTokens from '@/components/VoteTokens'
 import { MAX_VOTES } from '@/lib/constants'
 import { Card } from '@/ds/card'
@@ -182,9 +183,7 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
 
                   {/* 결과물 전문 */}
                   <div>
-                    <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
-                      ✦ GEMINI 결과물
-                    </div>
+                    <GeminiOutputLabel className="mb-2" />
                     <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">
                       {selected.result_text}
                     </p>

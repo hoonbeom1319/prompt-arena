@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import AiSummary from '@/components/AiSummary'
+import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import { Button } from '@/ds/button'
 import { Card } from '@/ds/card'
 import { IconLock } from '@/ds/icons'
@@ -146,9 +147,7 @@ export default function BlindCard({
       </div>
 
       {/* 결과물 섹션 */}
-      <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
-        ✦ GEMINI 결과물
-      </div>
+      <GeminiOutputLabel className="mb-2" />
       <div
         className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
         style={{ maxHeight: expanded ? (fullHeight ? `${fullHeight}px` : 'none') : `${CLAMP_HEIGHT}px` }}

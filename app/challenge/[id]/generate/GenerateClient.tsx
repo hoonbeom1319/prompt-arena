@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import GenPips from '@/components/GenPips'
+import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import { MAX_GENERATIONS } from '@/lib/constants'
 import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
@@ -88,9 +89,7 @@ export default function GenerateClient({
                 </p>
               </div>
             )}
-            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-2">
-              ✦ GEMINI 결과물
-            </div>
+            <GeminiOutputLabel className="mb-2" />
             <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
               {gen.activeGen.result_text}
             </p>
@@ -150,7 +149,15 @@ export default function GenerateClient({
               disabled={gen.loading || !gen.promptText.trim() || gen.locked}
               className="w-full"
             >
-              {gen.locked ? `생성 잠금 (${MAX_GENERATIONS}/${MAX_GENERATIONS})` : gen.loading ? '실행 중...' : '⚡ 실행 (Gemini)'}
+              {gen.locked ? (
+                `생성 잠금 (${MAX_GENERATIONS}/${MAX_GENERATIONS})`
+              ) : gen.loading ? (
+                '실행 중...'
+              ) : (
+                <span className="inline-flex items-center gap-1.5">
+                  <IconZap width={16} height={16} />실행 (Gemini)
+                </span>
+              )}
             </Button>
           </Card>
 

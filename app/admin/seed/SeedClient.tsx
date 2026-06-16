@@ -7,6 +7,7 @@ import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
+import { IconZap } from '@/ds/icons'
 import StatsRow from '@/components/StatsRow'
 
 type ChallengeOption = Pick<ChallengeRecord, 'id' | 'title' | 'instruction' | 'submission_start_at' | 'submission_end_at' | 'voting_start_at' | 'voting_end_at'>
@@ -253,7 +254,13 @@ export default function SeedClient({ initialChallenges }: SeedClientProps) {
                   || selectedState !== 'submission'
                 }
               >
-                {loading ? 'Gemini 실행 중…' : '⚡ 시드 출품작 추가'}
+                {loading ? (
+                  'Gemini 실행 중…'
+                ) : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <IconZap width={16} height={16} />시드 출품작 추가
+                  </span>
+                )}
               </Button>
 
               <p className="text-xs text-text-muted">

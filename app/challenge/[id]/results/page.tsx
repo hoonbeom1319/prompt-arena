@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
 import Podium from '@/components/Podium'
+import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import CopyLinkButton from './CopyLinkButton'
 import ResultList from './ResultList'
 import { rankSubmissions } from '@/lib/ranking'
@@ -206,9 +207,7 @@ export default async function ResultsPage({ params }: PageProps) {
                 </p>
               </div>
             )}
-            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-1.5">
-              ✦ GEMINI 결과물
-            </div>
+            <GeminiOutputLabel className="mb-1.5" />
             <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
               {winner.result_text}
             </p>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import RankBadge from '@/components/RankBadge'
+import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import { IconChevronDown } from '@/ds/icons'
 import { cn } from '@/lib/utils'
 
@@ -81,9 +82,7 @@ export default function ResultList({ subs }: { subs: RankedSub[] }) {
                     </p>
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-1.5">
-                      ✦ GEMINI 결과물
-                    </div>
+                    <GeminiOutputLabel className="mb-1.5" />
                     <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap p-3 bg-bg-subtle border border-border rounded-md">
                       {sub.result_text}
                     </p>
