@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
+import { Accordion } from '@/ds/accordion'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 
@@ -80,28 +81,21 @@ export default async function AdminSubmissionsPage() {
             : 'idle'
 
           return (
-            <details key={cid} open={idx === 0} className="group">
-              {/* 챌린지 헤더 — 클릭으로 접고 펼치기 */}
-              <summary className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-bg-subtle cursor-pointer list-none select-none hover:border-border-strong transition-colors [&::-webkit-details-marker]:hidden">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-text-muted shrink-0 transition-transform group-open:rotate-90"
-                  aria-hidden="true"
-                >
-                  <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <h2 className="text-[15px] font-bold text-text-primary truncate">
-                  {(ch as { title: string } | null)?.title ?? '알 수 없는 챌린지'}
-                </h2>
-                <Badge variant={STATE_VARIANT[state]} className="text-[11px] shrink-0">
-                  {getStateLabel(state)}
-                </Badge>
-                <span className="text-xs text-text-muted ml-auto shrink-0">{subs.length}건</span>
-              </summary>
-
+            <Accordion
+              key={cid}
+              defaultOpen={idx === 0}
+              trigger={
+                <>
+                  <h2 className="text-[15px] font-bold text-text-primary truncate min-w-0">
+                    {(ch as { title: string } | null)?.title ?? '알 수 없는 챌린지'}
+                  </h2>
+                  <Badge variant={STATE_VARIANT[state]} className="text-[11px] shrink-0">
+                    {getStateLabel(state)}
+                  </Badge>
+                  <span className="text-xs text-text-muted ml-auto shrink-0">{subs.length}건</span>
+                </>
+              }
+            >
               <Card className="overflow-hidden mt-2">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -156,7 +150,7 @@ export default async function AdminSubmissionsPage() {
                   </table>
                 </div>
               </Card>
-            </details>
+            </Accordion>
           )
         })}
       </div>

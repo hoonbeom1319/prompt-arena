@@ -165,6 +165,10 @@ export default async function ResultsPage({ params }: PageProps) {
     }
   }
 
+  // 전체 순위는 상위 20위까지만 노출한다. 주 쿼리는 .limit(20)으로 이미 잘리지만,
+  // 폴백 경로(순위 미집계)는 순위 계산을 위해 전부 가져오므로 여기서 잘라 일관성을 맞춘다.
+  rankedSubs = rankedSubs.slice(0, 20)
+
   const winner = rankedSubs.find(s => s.rank === 1)
   const podiumEntries = rankedSubs
     .filter(s => s.rank <= 3)
@@ -211,12 +215,27 @@ export default async function ResultsPage({ params }: PageProps) {
             <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
               {winner.result_text}
             </p>
+
+            {/* 결과 페이지 공유 — 우승작 카드 하단에 구분선과 함께 둔다. */}
+            <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
+              <span className="text-xs text-text-muted truncate tabular-nums">
+                /challenge/{id}/results
+              </span>
+              <CopyLinkButton />
+            </div>
           </Card>
         )}
 
         <div>
-          <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
-            전체 순위
+          <div className="flex items-baseline justify-between mb-2">
+            <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+              전체 순위
+            </div>
+            {rankedSubs.length > 0 && (
+              <span className="text-[11px] text-text-muted tabular-nums">
+                상위 {rankedSubs.length}개
+              </span>
+            )}
           </div>
           {rankedSubs.length === 0 ? (
             <Card className="p-12 text-center">
@@ -226,15 +245,6 @@ export default async function ResultsPage({ params }: PageProps) {
             <ResultList subs={rankedSubs} />
           )}
         </div>
-
-        <Card className="p-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-text-muted truncate tabular-nums">
-              /challenge/{id}/results
-            </span>
-            <CopyLinkButton />
-          </div>
-        </Card>
       </main>
     </div>
   )

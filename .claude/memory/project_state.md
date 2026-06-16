@@ -1,9 +1,30 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-15 (TO-DO 4건 처리)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (TO-DO 4건·배포 + UI 폴리시: 아코디언 컴포넌트화·결과 페이지)
 metadata:
   type: project
 ---
+
+## 현재 상태 (2026-06-16 6차 갱신)
+
+### TO-DO 처리 (2026-06-16) — `docs/TO-DO/TO-DO.md` 4건 + 신고기능 보류 → 커밋·배포 완료
+
+- **#1 투표 API 성능(2.77s)**: `app/api/vote/route.ts` — GET·POST의 독립 쿼리를 `Promise.all` 병렬화(왕복 2회→1회). GET=`myVotes`+`submissions` 동시, POST=`voteCount`+중복검사 동시. (주의: 한때 중복검사를 `.maybeSingle()`로 바꿨다가 vote 단위테스트 목이 `single`만 정의해 7건 깨짐 → `.single()`로 원복. 목 호환 위해 유지). 느림의 근본은 `auth.getUser()` 네트워크 검증 + 콜드스타트라 코드 병렬화는 부분 개선
+- **#2 admin/submissions 모니터링 개선**: 챌린지별 그룹을 네이티브 `<details>` 아코디언으로(첫 그룹만 `open`), **시드 출품작 제외**(`filter(!is_seed)`), 시드 뱃지·카운트 제거. (→ 후속: 애니메이션 없는 네이티브 `<details`를 공용 컴포넌트로 교체. 아래 "UI 폴리시" 참고)
+- **#3 투표 모바일 단일 아코디언**: `BlindCard` 결과물 펼침 상태를 부모(`vote/page.tsx`의 `expandedId`)로 끌어올려 한 번에 하나만 펼침(radix accordion 동작). `expanded`/`onToggleExpand` prop 추가(필수). 프롬프트 펼침은 잠금해제 후라 내부 상태 유지
+- **#4 투표 단계 다음 주제 예고**: `widgets/home/HomeBody.tsx` voting 블록 — 3표 완료 시 `NextTopicCard` 노출, 미완료 시 `LockedNextTopicCard`(blur + "투표 N/3 다 하면 공개"). `nextChallenge`는 이미 `fetchHomeData`가 항상 계산해 prop으로 내려옴
+- **신고 기능 보류**: 사용자 지시로 제외. 작업 중 추가했던 `users.is_blocked`/`reports` 스키마 변경은 롤백함. 재개 시 [[project-state]] 이 항목 참고
+- **검증**: tsc·ESLint 클린, vitest **69/69**, 프로덕션 빌드 통과. **E2E `vote.spec`·`generate.spec`은 기존 stale** — 페이지가 서버사이드 `/api/vote`·`/api/generate`로 데이터를 받는데 테스트는 브라우저 네트워크 레벨만 mock해 서버→Supabase 호출이 401(로그인 필요)로 떨어짐. 내 변경 무관(HEAD에서도 동일 구조). e2e 실행 시 워커가 `.env.local`만 읽어 storage key를 못 구함 → `.env`의 `NEXT_PUBLIC_SUPABASE_URL`을 env로 주입해 우회([[no-dummy-envlocal]] 준수, 더미 파일 금지)
+- **로컬 미검증 배포**: 사용자가 로컬 화면 확인 없이 커밋·배포. 빌드 green이라 기능 위험은 낮고, 미검증은 3개 UI(admin 아코디언/모바일 단일펼침/잠금 예고카드)의 *모양*뿐
+
+### UI 폴리시 (2026-06-16, #2 후속 + 결과 페이지) — tsc 클린
+
+- **공용 애니메이션 아코디언 `ds/accordion.tsx` 신설**: 네이티브 `<details>`는 펼침 애니메이션이 불가능 → `BlindCard`에서 검증된 `grid-rows-[1fr]/[0fr]` + `transition-[grid-template-rows]` 기법(JS 높이측정 불필요)을 컴포넌트로 추출. `trigger`(헤더 컨텐츠 주입)·`defaultOpen`·`variant`(`subtle` 기본/`plain`)·`contentClassName` props. 셰브론은 컴포넌트가 자동으로 붙이고 펼침 시 90° 회전. **`admin/submissions`가 첫 사용처** — 기존 `<details>/<summary>` 마크업을 `<Accordion>`으로 교체(헤더는 `trigger`로 주입, truncate 위해 `min-w-0` 추가). 서버 컴포넌트가 children을 client 래퍼에 넘기는 구조.
+- **결과 페이지(`results/page.tsx`·`Podium`·`RankBadge`) 정리**:
+  - 시상대 이름 중복 제거 — 원형 배지(`#adf`) 아래 또 있던 `익명#adf` 텍스트 줄 삭제
+  - **금·은·동 색을 단일 출처 `lib/rank-colors.ts`(`getMedalColor`)로 추출** → `RankBadge`(하드코딩 oklch를 이 모듈로 치환, 색값 동일)와 `Podium`(파란 accent 일색 → 금/은/동)이 공유. 이제 상단 시상대와 전체순위 색이 일치
+  - 전체순위 헤더에 `상위 N개` 표기(`min(출품수, 20)`). 주 쿼리는 이미 `.limit(20)`, 폴백 경로는 순위계산상 전체조회라 계산 후 `rankedSubs.slice(0, 20)`로 상한 일관성 확보
+  - 링크 복사(`CopyLinkButton`)를 맨 하단 별도 카드 → **우승작 카드 안 하단**(구분선)으로 이동(사용자 선택). 우승작 없을 때(출품 0)는 같이 비노출 — 빈 상태라 공유 대상 없음
 
 ## 현재 상태 (2026-06-12 5차 갱신)
 
@@ -51,7 +72,7 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
 #### 디자인 시스템
 - sky-600 accent (OKLCH `oklch(58.8% 0.158 241.966)`), slate 뉴트럴
 - Pretendard 자체 호스팅 (`public/fonts/`)
-- DS 컴포넌트: Button / Card / Badge / Input / Label / Textarea
+- DS 컴포넌트: Button / Card / Badge / Input / Label / Textarea / Accordion(애니메이션·variant)
 - warning(amber) → accent(sky) 전면 통일
 
 #### 레이아웃 셸
@@ -67,7 +88,7 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
   - 3표 완료 시 grid-template-rows 트릭으로 잠금 아웃 / 프롬프트 인 슬라이드
   - 결과물 텍스트 5줄 클램프 + 전체보기/접기 (max-height transition)
   - 3표 완료 후 API 재호출로 prompt_text 즉시 반영
-- **결과** (`app/challenge/[id]/results/page.tsx` + `ResultList.tsx`): 우승작 프롬프트 직접 표시, 전체 순위 아코디언으로 프롬프트+결과물 열람
+- **결과** (`app/challenge/[id]/results/page.tsx` + `ResultList.tsx` + `Podium`): 우승작 프롬프트 직접 표시(카드 안에 링크 복사 포함), 전체 순위 아코디언으로 프롬프트+결과물 열람(상위 20개). 시상대/순위 금·은·동 색은 `lib/rank-colors.ts` 공유
 - **아카이브** (`app/archive/page.tsx`): `voting_end_at < now` 필터로 결과 단계 챌린지만 표시
 - **프로필** (`app/profile/page.tsx`): 닉네임 인라인 편집, stat 3열, 지난 챌린지/코인 내역(최대 5개 + "전체 내역" 링크). 뱃지 섹션 홀딩
 - **코인 전체 내역** (`app/profile/coins/page.tsx`): 날짜별 그룹핑, 시간 표시, 보유 잔액
@@ -80,7 +101,7 @@ ALTER TABLE submissions ADD COLUMN ai_summary text;
 - 챌린지 관리(`/admin/challenges`): 목록 + 결과 확정 + "새 챌린지 만들기" 버튼
 - 대시보드: 통계, 빠른 진입
 - 시드 제출: `is_seed=true` 계정만 드롭다운
-- 출품 모니터링: 챌린지별 섹션 그룹핑 + 프롬프트 컬럼
+- 출품 모니터링: 챌린지별 공용 `<Accordion>`(애니메이션, 2026-06-16) + 프롬프트 컬럼, 시드 출품작 제외
 - 유저 관리: service client + 시드 토글
 
 #### 기능

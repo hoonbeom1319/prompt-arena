@@ -1,3 +1,6 @@
+import { cn } from '@/lib/utils'
+import { getMedalColor } from '@/lib/rank-colors'
+
 interface PodiumEntry {
   id: string
   rank: number
@@ -29,6 +32,7 @@ export default function Podium({ entries }: PodiumProps) {
       {podiumOrder.map(entry => {
         const isFirst = entry.rank === 1
         const showAttempt = tiedVoteCounts.has(entry.votes)
+        const medal = getMedalColor(entry.rank)
         return (
           <div key={entry.id} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
             {isFirst && (
@@ -36,16 +40,14 @@ export default function Podium({ entries }: PodiumProps) {
                 <path d="M8 21h8M12 17v4M7 4h10l1 7H6l1-7zM9 4V3h6v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             )}
-            <div className={[
-              'rounded-full flex items-center justify-center font-bold border',
-              isFirst
-                ? 'w-[52px] h-[52px] text-base bg-accent-light text-accent border-accent-mid'
-                : 'w-11 h-11 text-sm bg-bg-base text-text-secondary border-border',
-            ].join(' ')}>
+            <div
+              className={cn(
+                'rounded-full flex items-center justify-center font-bold border border-border',
+                isFirst ? 'w-[52px] h-[52px] text-base' : 'w-11 h-11 text-sm',
+              )}
+              style={medal ? { background: medal.bg, color: medal.text } : undefined}
+            >
               #{entry.label}
-            </div>
-            <div className="text-xs font-bold text-text-primary truncate max-w-full text-center">
-              익명#{entry.label}
             </div>
             <div className="text-center leading-tight">
               <div className="text-[11px] text-text-muted tabular-nums">{entry.votes}표</div>
@@ -57,11 +59,8 @@ export default function Podium({ entries }: PodiumProps) {
               className="w-full rounded-t-md flex items-start justify-center pt-2 text-[22px] font-extrabold"
               style={{
                 height: BLOCK_HEIGHTS[entry.rank] ?? 42,
-                ...(entry.rank === 1
-                  ? { background: 'var(--color-accent)', color: '#fff' }
-                  : entry.rank === 2
-                  ? { background: 'var(--color-accent-mid)', color: 'var(--color-accent-hover)' }
-                  : { background: 'oklch(91% 0.05 238)', color: 'var(--color-accent)' }),
+                background: medal?.bg ?? 'var(--color-bg-subtle)',
+                color: medal?.text ?? 'var(--color-text-muted)',
               }}
             >
               {entry.rank}
