@@ -24,6 +24,14 @@ const ClockIcon = ({ filled }: { filled: boolean }) => (
   </svg>
 )
 
+const QuizIcon = ({ filled }: { filled: boolean }) => (
+  <svg width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
+    <circle cx="10.5" cy="10.5" r="7.5" fill={filled ? 'currentColor' : 'none'} fillOpacity={filled ? 0.12 : 0} stroke="currentColor" strokeWidth="1.5"/>
+    <path d="M8.5 8.3a2 2 0 1 1 2.7 1.9c-.6.2-.9.6-.9 1.2v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="10.4" cy="14.4" r="0.85" fill="currentColor"/>
+  </svg>
+)
+
 const PersonIcon = ({ filled }: { filled: boolean }) => (
   <svg width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
     <circle cx="10.5" cy="7.5" r="3" fill={filled ? 'currentColor' : 'none'} fillOpacity={filled ? 0.15 : 0} stroke="currentColor" strokeWidth="1.5"/>
@@ -43,6 +51,12 @@ export const navTabs = [
     label: '지난 챌린지',
     Icon: ClockIcon,
     isActive: (p: string) => p.startsWith('/archive'),
+  },
+  {
+    href: '/quiz',
+    label: '퀴즈',
+    Icon: QuizIcon,
+    isActive: (p: string) => p.startsWith('/quiz'),
   },
   {
     href: '/profile',

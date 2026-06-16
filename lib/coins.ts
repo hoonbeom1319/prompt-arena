@@ -6,6 +6,11 @@ export const COIN_AMOUNTS = {
   RANK_1: 100,
   RANK_2: 50,
   RANK_3: 25,
+  // 데일리 퀴즈 (PRD v1.3 4.7.3) — 매일 정답 시 소액.
+  QUIZ_CORRECT_DAILY: 1,
+  // 연승 마일스톤 코인 보너스는 v1.3 초기엔 미지급(뱃지만 부여). 켤 때 여기에 상수를 추가하되
+  // 두 부등호를 사수할 것: ① 마일스톤 보너스에 상한(예: 30연승까지)  ② 퀴즈 누적 보상 < 챌린지 우승 보상.
+  // ("n승=n개"는 지수 폭발·부익부·본질 추월로 거부.) — lib/quiz.ts의 마일스톤 분기 참고.
 } as const
 
 export async function awardCoins(

@@ -92,6 +92,41 @@ create table if not exists public.user_badges (
   unique(user_id, badge_id)
 );
 
+-- 데일리 O/X 퀴즈 (PRD v1.3 4.7) — "빈 시간 채우는 작은 양념"
+-- 출제: 외부 AI 작성 → admin 배치 등록. 하루 1문항.
+create table if not exists public.quiz_items (
+  id uuid primary key default gen_random_uuid(),
+  question text not null,
+  -- 정답은 'O' 또는 'X'. 응답 전 클라이언트에 노출 금지(아래 RLS 참고)
+  correct_answer text not null check (correct_answer in ('O', 'X')),
+  explanation text not null,
+  -- 게시 일자 (하루 1문항 보장). 서버 시각 자정 기준.
+  publish_date date not null unique,
+  created_at timestamptz default now() not null
+);
+
+-- 일별 사용자 응답 기록 = 데일리 리텐션 축 (PRD 4.7.5)
+create table if not exists public.quiz_answers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.users(id) on delete cascade not null,
+  quiz_item_id uuid references public.quiz_items(id) on delete cascade not null,
+  choice text not null check (choice in ('O', 'X')),
+  is_correct boolean not null,
+  answered_at timestamptz default now() not null,
+  -- 한 User는 한 문항(하루)에 1회만
+  unique(user_id, quiz_item_id)
+);
+
+-- 연승 캐시 (QuizAnswer에서 파생 가능하나 현재값 캐시 — PRD 6.1)
+create table if not exists public.streaks (
+  user_id uuid references public.users(id) on delete cascade primary key,
+  current_streak integer default 0 not null,
+  best_streak integer default 0 not null,
+  -- 마지막으로 정답을 맞힌 '게시 일자'. 직전 출제일과 비교해 연속 여부 판정.
+  last_correct_date date,
+  updated_at timestamptz default now() not null
+);
+
 -- RLS Policies
 alter table public.users enable row level security;
 alter table public.categories enable row level security;
@@ -102,6 +137,9 @@ alter table public.votes enable row level security;
 alter table public.coin_transactions enable row level security;
 alter table public.badges enable row level security;
 alter table public.user_badges enable row level security;
+alter table public.quiz_items enable row level security;
+alter table public.quiz_answers enable row level security;
+alter table public.streaks enable row level security;
 
 -- Users: own row
 create policy "users_select_own" on public.users for select using (auth.uid() = id);
@@ -134,6 +172,14 @@ create policy "coins_own" on public.coin_transactions for select using (auth.uid
 create policy "badges_public" on public.badges for select using (true);
 create policy "user_badges_own" on public.user_badges for select using (auth.uid() = user_id);
 
+-- Quiz items: 정답·해설이 들어있어 public read 금지.
+-- 오늘 문항 노출/채점은 모두 서버(service role)에서 처리. 일반 사용자 직접 접근 차단.
+-- (별도 select policy 없음 = RLS로 anon/authenticated 직접 read 불가)
+
+-- Quiz answers / streaks: 본인 것만 read (집계·갱신은 서버 service role)
+create policy "quiz_answers_own" on public.quiz_answers for select using (auth.uid() = user_id);
+create policy "streaks_own" on public.streaks for select using (auth.uid() = user_id);
+
 -- Default categories
 insert into public.categories (name, display_order) values
   ('글쓰기', 1),
@@ -151,5 +197,8 @@ insert into public.badges (name, description, icon, condition_type) values
   ('첫 우승', '처음으로 챌린지에서 우승했어요', '🏆', 'first_win'),
   ('3연속 우승', '챌린지에서 3번 우승했어요', '👑', 'wins_3'),
   ('투표왕', '투표를 30번 했어요', '🗳️', 'votes_30'),
-  ('프롬프트 장인', '챌린지를 10번 참여했어요', '⚒️', 'participation_10')
+  ('프롬프트 장인', '챌린지를 10번 참여했어요', '⚒️', 'participation_10'),
+  ('10연승', '퀴즈를 10일 연속 맞혔어요', '🔥', 'streak_10'),
+  ('20연승', '퀴즈를 20일 연속 맞혔어요', '⚡', 'streak_20'),
+  ('30연승', '퀴즈를 30일 연속 맞혔어요', '💎', 'streak_30')
 on conflict do nothing;

@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/admin/challenges', label: '챌린지 관리' },
   { href: '/admin/seed', label: '시드 제출' },
   { href: '/admin/submissions', label: '출품·결과' },
+  { href: '/admin/quiz', label: '데일리 퀴즈' },
   { href: '/admin/users', label: '사용자·코인' },
 ]
 
