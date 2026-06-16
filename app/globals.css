@@ -63,7 +63,18 @@
   --shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-/* 인라인 style(var(--accent)) 호환용 — @theme와 동일 값 */
+/*
+ * 런타임 CSS 변수 세트 — @theme inline과 "값은 같지만 역할이 다르다" (의도된 2벌).
+ *
+ * @theme inline은 유틸리티에 값을 *인라인*으로 박는다(`.bg-bg-base{background:#f1f5f9}`).
+ * → `--color-*` CSS 변수를 :root에 emit하지 않으므로, 유틸리티가 아닌 곳에서는 쓸 수 없다:
+ *   ① 생짜 CSS 규칙(body, ::-webkit-scrollbar 등 pseudo-element)
+ *   ② Tailwind 임의값 안의 color-mix(`bg-[color-mix(in_oklab,var(--success)_12%,white)]`) — badge·alert 다수
+ * 이 :root 세트가 그 var() 참조의 단일 출처다. **삭제 금지** — 지우면 위 ①②가 런타임에 깨진다
+ * (tsc/build/test는 CSS 런타임을 못 잡는다). 위 @theme inline 블록과 값을 *동기화*해서 유지할 것.
+ * (※ `@theme`를 inline 없이 쓰면 `--color-*`를 emit하지만, 그땐 var(--accent) 체인이 @layer theme
+ *  기본값에 덮여 sky 토큰이 누락됨 — 그래서 inline + 이 세트의 조합을 쓴다.)
+ */
 :root {
   --bg-base:   oklch(96.8% 0.007 247.896);
   --bg-subtle: oklch(98.4% 0.003 247.858);

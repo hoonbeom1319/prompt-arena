@@ -121,8 +121,11 @@ lib/
 
 ## 5. 스타일 토큰 단일화
 
-- **`app/globals.css`의 `@theme` 토큰이 유일한 출처.** 인라인 스타일 호환용으로 중복 정의된 두 번째 `--*` 세트(`globals.css:66-83`)는 **삭제 대상**.
-- **인라인 `style={{ color: 'var(--*)' }}` 금지.** Tailwind 토큰 유틸(`text-text-primary` 등)만 사용. (인라인 스타일을 쓰던 컴포넌트는 대부분 죽은 코드 → §6에서 삭제.)
+- **두 토큰 세트는 "값은 같지만 역할이 다른" 의도된 2벌이다 (P5에서 검증·정정).** ~~두 번째 세트는 삭제 대상~~ → **삭제 불가**:
+  - `@theme inline` 블록 = **유틸리티 생성용**. `inline`이라 값이 유틸에 직접 박히고(`.bg-bg-base{background:#f1f5f9}`) `--color-*` CSS 변수를 **:root에 emit하지 않는다**(컴파일 CSS로 확인).
+  - 두 번째 `:root` 세트 = **런타임 `var()` 참조의 단일 출처**. 유틸이 못 닿는 곳이 쓴다: ① 생짜 CSS(`body`·`::-webkit-scrollbar`) ② Tailwind 임의값 속 `color-mix`(`bg-[color-mix(…var(--success)…)]` — badge·alert 다수, 앱 전반 라이브). 지우면 런타임에 깨짐(tsc/build/test는 CSS 런타임 미감지).
+  - `@theme`를 `inline` 없이 쓰면 `--color-*`를 emit하지만 `var(--accent)` 체인이 `@layer theme` 기본값에 덮여 sky 토큰 누락 → 그래서 `inline`+`:root` 조합. 두 세트는 **값 동기화로 유지**(globals.css 상단 주석에 근거 명문화).
+- **인라인 `style={{ color: 'var(--*)' }}` 금지(동적 값 제외).** Tailwind 토큰 유틸(`text-text-primary` 등)만 사용. `Podium`은 P5에서 고정색을 토큰 유틸로 전환, 동적 메달 oklch(`getMedalColor`)만 인라인 잔류(유틸로 표현 불가).
 - `lib/.../rank-colors`의 하드코딩 oklch는 토큰을 참조하도록 정리.
 
 ---
@@ -153,7 +156,7 @@ lib/
 
 - **유지:** `BadgeList` — 보류된 뱃지 UI 기능(메모리 기록). 죽은 게 아니라 미착수.
 - **삭제 금지(살아있음):** `TopicCard`·`CountdownCard`·`CountdownTimer` — `HomeBody`가 사용. (초기 감사가 오판한 항목 — 검증으로 교정.)
-- `globals.css`의 2번째 색 토큰 세트는 **여기서 못 지움** — 살아있는 `Podium`이 아직 인라인 `style={{ var(--*) }}`를 씀. 토큰 세트 제거는 Podium을 토큰 유틸로 바꾼 뒤(P5)로 미룸.
+- `globals.css`의 2번째 색 토큰 세트는 **영구 유지**(애초 "Podium만 쓴다"는 가정이 틀렸음 — P5 검증). `@theme inline`이 `--color-*` var를 emit 안 해서, 생짜 CSS·`color-mix` 임의값(badge·alert·body·scrollbar)이 이 세트를 런타임 var로 참조한다. 자세한 근거 §5 참고. (Podium 인라인 var는 P5에서 제거 완료.)
 
 ---
 

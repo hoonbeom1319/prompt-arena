@@ -53,11 +53,13 @@ export default function Podium({ entries }: PodiumProps) {
               )}
             </div>
             <div
-              className="w-full rounded-t-md flex items-start justify-center pt-2 text-[22px] font-extrabold"
+              className={cn(
+                'w-full rounded-t-md flex items-start justify-center pt-2 text-[22px] font-extrabold',
+                !medal && 'bg-bg-subtle text-text-muted',
+              )}
               style={{
                 height: BLOCK_HEIGHTS[entry.rank] ?? 42,
-                background: medal?.bg ?? 'var(--color-bg-subtle)',
-                color: medal?.text ?? 'var(--color-text-muted)',
+                ...(medal ? { background: medal.bg, color: medal.text } : {}),
               }}
             >
               {entry.rank}
