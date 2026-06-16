@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AiSummary from '@/components/AiSummary'
 import BlindCard from '@/components/BlindCard'
 import VoteTokens from '@/components/VoteTokens'
@@ -8,17 +8,7 @@ import { MAX_VOTES } from '@/lib/constants'
 import { Card } from '@/ds/card'
 import { Button } from '@/ds/button'
 import { cn } from '@/lib/utils'
-
-interface Submission {
-  id: string
-  result_text: string
-  prompt_text?: string | null
-  ai_summary?: string | null
-}
-
-interface VoteState {
-  submissionId: string
-}
+import { useVoting } from './useVoting'
 
 interface VoteClientProps {
   challengeId: string
@@ -26,89 +16,17 @@ interface VoteClientProps {
 }
 
 // 투표 인터랙션만 담당하는 클라이언트 island. 인증·챌린지는 서버 컴포넌트가 보장.
-// 목록·투표 모두 /api/vote 경유 — supabase 직접 호출 없음 (ARCHITECTURE §2).
+// 상태 머신·목록·투표는 useVoting 훅이 /api/vote로 처리 — supabase 직접 호출 없음 (ARCHITECTURE §2·§4).
 export default function VoteClient({ challengeId, challengeTitle }: VoteClientProps) {
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [myVotes, setMyVotes] = useState<VoteState[]>([])
+  const v = useVoting(challengeId)
+
+  // 마스터-디테일 선택(데스크탑)·아코디언 펼침(모바일)은 순수 UI 상태 — 컴포넌트에 잔류.
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  // 모바일 카드 리스트에서 한 번에 하나의 결과물만 펼친다 (radix accordion 동작).
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [voting, setVoting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pageLoading, setPageLoading] = useState(true)
-  const [revealed, setRevealed] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
+  const selected = v.submissions.find(s => s.id === selectedId) ?? v.submissions[0]
 
-    async function load() {
-      const res = await fetch(`/api/vote?challengeId=${challengeId}`)
-      const data = await res.json()
-      if (cancelled) return
-
-      if (res.ok) {
-        setSubmissions(data.submissions.map((s: Submission) => ({
-          id: s.id,
-          result_text: s.result_text,
-          prompt_text: s.prompt_text ?? null,
-          ai_summary: s.ai_summary ?? null,
-        })))
-        setMyVotes(data.votedSubmissionIds.map((sid: string) => ({ submissionId: sid })))
-        if (data.revealed) setRevealed(true)
-      } else {
-        setError(data.error || '목록을 불러오지 못했어요.')
-      }
-
-      setPageLoading(false)
-    }
-
-    load()
-    return () => { cancelled = true }
-  }, [challengeId])
-
-  const handleVote = async (submissionId: string) => {
-    if (myVotes.some(v => v.submissionId === submissionId)) return
-    if (myVotes.length >= MAX_VOTES) return
-
-    setVoting(true)
-    setError(null)
-
-    const res = await fetch('/api/vote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challengeId, submissionId }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      setError(data.error || '투표에 실패했어요.')
-    } else {
-      const newVotes = [...myVotes, { submissionId }]
-      setMyVotes(newVotes)
-      if (newVotes.length >= MAX_VOTES) {
-        setRevealed(true)
-        const revealRes = await fetch(`/api/vote?challengeId=${challengeId}`)
-        const revealData = await revealRes.json()
-        if (revealRes.ok && revealData.revealed) {
-          setSubmissions(revealData.submissions.map((s: Submission) => ({
-            id: s.id,
-            result_text: s.result_text,
-            prompt_text: s.prompt_text ?? null,
-            ai_summary: s.ai_summary ?? null,
-          })))
-        }
-      }
-    }
-
-    setVoting(false)
-  }
-
-  const votesUsed = myVotes.length
-  const promptsUnlocked = revealed || votesUsed >= MAX_VOTES
-  const selected = submissions.find(s => s.id === selectedId) ?? submissions[0]
-
-  if (pageLoading) {
+  if (v.pageLoading) {
     return (
       <div className="flex justify-center items-center min-h-[300px]" role="status" aria-label="불러오는 중">
         <div className="w-8 h-8 border-[3px] border-border border-t-accent rounded-full animate-spin" />
@@ -123,19 +41,19 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
           &ldquo;{challengeTitle}&rdquo;
         </h2>
 
-        <Card className={['p-3', promptsUnlocked ? 'bg-accent-light border-accent-mid' : ''].join(' ')}>
+        <Card className={['p-3', v.promptsUnlocked ? 'bg-accent-light border-accent-mid' : ''].join(' ')}>
           <div className="flex items-center justify-between mb-1.5">
             <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
-              내 투표 <b className="tabular-nums">{votesUsed}/{MAX_VOTES}</b>
+              내 투표 <b className="tabular-nums">{v.votesUsed}/{MAX_VOTES}</b>
             </span>
-            <VoteTokens used={votesUsed} />
+            <VoteTokens used={v.votesUsed} />
           </div>
-          <p className={['text-xs', promptsUnlocked ? 'text-accent' : 'text-text-muted'].join(' ')}>
-            {promptsUnlocked
+          <p className={['text-xs', v.promptsUnlocked ? 'text-accent' : 'text-text-muted'].join(' ')}>
+            {v.promptsUnlocked
               ? '✓ 3표 완료 — 전체 프롬프트 열람이 해제됐어요'
               : '3표를 모두 쓰면 전체 프롬프트가 공개돼요'}
           </p>
-          {!promptsUnlocked && (
+          {!v.promptsUnlocked && (
             // 투표 피로도 완화 (PRD v1.1 4.6.2) — "전부 정독해야 할 것 같은 압박" 제거
             <p className="text-xs text-text-muted mt-0.5">
               마음에 드는 것에만 투표하세요. 전부 볼 필요 없어요.
@@ -143,13 +61,13 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
           )}
         </Card>
 
-        {error && (
+        {v.error && (
           <div role="alert" className="px-4 py-3 bg-[color-mix(in_oklab,var(--error)_12%,white)] border border-[color-mix(in_oklab,var(--error)_32%,white)] rounded-lg text-error text-sm">
-            {error}
+            {v.error}
           </div>
         )}
 
-        {submissions.length === 0 ? (
+        {v.submissions.length === 0 ? (
           <Card className="p-12 text-center">
             <p className="text-base text-text-muted">아직 제출된 프롬프트가 없어요.</p>
           </Card>
@@ -157,19 +75,19 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
           <>
             {/* 모바일 — 카드 리스트 */}
             <div className="flex flex-col gap-3.5 md:hidden">
-              {submissions.map(sub => (
+              {v.submissions.map(sub => (
                 <BlindCard
                   key={sub.id}
                   submissionId={sub.id}
                   resultText={sub.result_text}
                   aiSummary={sub.ai_summary}
                   promptText={sub.prompt_text}
-                  promptsUnlocked={promptsUnlocked}
-                  votesUsed={votesUsed}
-                  hasVoted={myVotes.some(v => v.submissionId === sub.id)}
-                  canVote={votesUsed < MAX_VOTES}
-                  voting={voting}
-                  onVote={handleVote}
+                  promptsUnlocked={v.promptsUnlocked}
+                  votesUsed={v.votesUsed}
+                  hasVoted={v.hasVoted(sub.id)}
+                  canVote={v.votesUsed < MAX_VOTES}
+                  voting={v.voting}
+                  onVote={v.vote}
                   expanded={expandedId === sub.id}
                   onToggleExpand={(sid) => setExpandedId(prev => (prev === sid ? null : sid))}
                 />
@@ -183,11 +101,11 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
                 aria-label="출품작 목록"
               >
                 <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider px-1">
-                  출품작 {submissions.length}
+                  출품작 {v.submissions.length}
                 </div>
-                {submissions.map((sub, i) => {
+                {v.submissions.map((sub, i) => {
                   const active = selected?.id === sub.id
-                  const hasVoted = myVotes.some(v => v.submissionId === sub.id)
+                  const hasVoted = v.hasVoted(sub.id)
                   return (
                     <button
                       key={sub.id}
@@ -244,7 +162,7 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
                         출품 #{selected.id.replace(/-/g, '').slice(0, 3)}
                       </span>
                     </div>
-                    {promptsUnlocked && selected.prompt_text ? (
+                    {v.promptsUnlocked && selected.prompt_text ? (
                       <div className="p-3.5 bg-bg-subtle border border-border rounded-lg">
                         <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">
                           {selected.prompt_text}
@@ -260,7 +178,7 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
                           <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="1.5"/>
                         </svg>
                         <p className="text-sm text-text-muted">
-                          3표를 모두 행사하면 공개돼요 ({votesUsed}/{MAX_VOTES})
+                          3표를 모두 행사하면 공개돼요 ({v.votesUsed}/{MAX_VOTES})
                         </p>
                       </div>
                     )}
@@ -291,13 +209,13 @@ export default function VoteClient({ challengeId, challengeTitle }: VoteClientPr
               variant="primary"
               className="w-full"
               disabled={
-                myVotes.some(v => v.submissionId === selected.id)
-                || votesUsed >= MAX_VOTES
-                || voting
+                v.hasVoted(selected.id)
+                || v.votesUsed >= MAX_VOTES
+                || v.voting
               }
-              onClick={() => handleVote(selected.id)}
+              onClick={() => v.vote(selected.id)}
             >
-              {myVotes.some(v => v.submissionId === selected.id) ? '✓ 투표됨' : '✓ 이 답변에 투표'}
+              {v.hasVoted(selected.id) ? '✓ 투표됨' : '✓ 이 답변에 투표'}
             </Button>
           </div>
         </div>
