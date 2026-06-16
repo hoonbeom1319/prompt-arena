@@ -9,7 +9,7 @@ import { Card } from "@/ds/card";
 import { Badge } from "@/ds/badge";
 import { Button } from "@/ds/button";
 import { type ChallengeState } from "@/lib/challenge-state";
-import { MAX_GENERATIONS } from "@/lib/constants";
+import { MAX_GENERATIONS, MAX_VOTES } from "@/lib/constants";
 import type { TopRankEntry, NextChallengePreview } from "@/lib/home-data";
 
 interface ChallengeInfo {
@@ -149,6 +149,32 @@ function NextTopicCard({ next }: { next: NextChallengePreview }) {
           카테고리 · {next.category}
         </p>
       )}
+    </Card>
+  );
+}
+
+// 투표 단계 — 3표를 다 쓰기 전엔 다음 주제를 가린 채 동기만 보여준다.
+function LockedNextTopicCard({ votesUsed }: { votesUsed: number }) {
+  return (
+    <Card className="p-4 bg-bg-subtle">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="text-[11px] font-semibold text-text-primary uppercase tracking-wider">
+          다음 주제 예고
+        </span>
+        <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          가림
+        </span>
+      </div>
+      <div className="text-[15px] font-semibold text-text-muted blur-[5px] select-none" aria-hidden="true">
+        &ldquo;다음 주 주제가 여기에 공개돼요&rdquo;
+      </div>
+      <p className="text-xs text-text-secondary mt-2">
+        투표 {MAX_VOTES}개를 모두 하면 다음 주 주제가 공개돼요 ({votesUsed}/{MAX_VOTES})
+      </p>
     </Card>
   );
 }
@@ -405,6 +431,13 @@ export default function HomeBody({
               투표하러 가기
             </Link>
           </Button>
+          {/* 다음 주제 예고 — 3표 완료 시 공개, 미완료 시 동기 부여용 잠금 카드 */}
+          {nextChallenge &&
+            ((user?.voteCount ?? 0) >= MAX_VOTES ? (
+              <NextTopicCard next={nextChallenge} />
+            ) : (
+              <LockedNextTopicCard votesUsed={user?.voteCount ?? 0} />
+            ))}
         </>
       )}
 

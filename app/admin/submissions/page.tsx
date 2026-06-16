@@ -27,12 +27,15 @@ export default async function AdminSubmissionsPage() {
     .order('submitted_at', { ascending: false })
     .limit(200)
 
+  // 시드 출품작은 모니터링 대상이 아니므로 제외한다.
+  const realSubmissions = (submissions ?? []).filter(s => !s.is_seed)
+
   // 챌린지별 그룹핑
-  type Sub = NonNullable<typeof submissions>[number]
+  type Sub = (typeof realSubmissions)[number]
   const grouped = new Map<string, { challenge: Sub['challenges']; subs: Sub[] }>()
 
   // 실시간 투표수 집계
-  const challengeIds = [...new Set((submissions ?? []).map(s => s.challenge_id))]
+  const challengeIds = [...new Set(realSubmissions.map(s => s.challenge_id))]
   const liveVoteCounts = new Map<string, number>()
   if (challengeIds.length > 0) {
     const { data: votes } = await supabase
@@ -44,7 +47,7 @@ export default async function AdminSubmissionsPage() {
     }
   }
 
-  for (const sub of submissions ?? []) {
+  for (const sub of realSubmissions) {
     const cid = sub.challenge_id
     if (!grouped.has(cid)) grouped.set(cid, { challenge: sub.challenges, subs: [] })
     grouped.get(cid)!.subs.push(sub)
@@ -62,36 +65,44 @@ export default async function AdminSubmissionsPage() {
     <div>
       <h1 className="text-[22px] font-bold text-text-primary mb-1">출품·결과 모니터링</h1>
       <p className="text-sm text-text-secondary mb-5">
-        챌린지별 출품작 전체 조회 — 프롬프트·결과물 포함. 부정 출품 삭제는 추후 연결 예정.
+        챌린지별 출품작 전체 조회 — 프롬프트·결과물 포함. 시드 출품작은 제외. 부정 출품 삭제는 추후 연결 예정.
       </p>
 
       {grouped.size === 0 && (
         <Card className="p-12 text-center text-text-muted">아직 출품작이 없어요</Card>
       )}
 
-      <div className="flex flex-col gap-8">
-        {[...grouped.entries()].map(([cid, { challenge, subs }]) => {
+      <div className="flex flex-col gap-3">
+        {[...grouped.entries()].map(([cid, { challenge, subs }], idx) => {
           const ch = Array.isArray(challenge) ? challenge[0] : challenge
           const state = ch
             ? getChallengeState(ch as Parameters<typeof getChallengeState>[0], now)
             : 'idle'
 
           return (
-            <section key={cid}>
-              {/* 챌린지 헤더 */}
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-[15px] font-bold text-text-primary">
+            <details key={cid} open={idx === 0} className="group">
+              {/* 챌린지 헤더 — 클릭으로 접고 펼치기 */}
+              <summary className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-bg-subtle cursor-pointer list-none select-none hover:border-border-strong transition-colors [&::-webkit-details-marker]:hidden">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="text-text-muted shrink-0 transition-transform group-open:rotate-90"
+                  aria-hidden="true"
+                >
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <h2 className="text-[15px] font-bold text-text-primary truncate">
                   {(ch as { title: string } | null)?.title ?? '알 수 없는 챌린지'}
                 </h2>
-                <Badge variant={STATE_VARIANT[state]} className="text-[11px]">
+                <Badge variant={STATE_VARIANT[state]} className="text-[11px] shrink-0">
                   {getStateLabel(state)}
                 </Badge>
-                <span className="text-xs text-text-muted ml-auto">
-                  {subs.length}건 · 시드 {subs.filter(s => s.is_seed).length}
-                </span>
-              </div>
+                <span className="text-xs text-text-muted ml-auto shrink-0">{subs.length}건</span>
+              </summary>
 
-              <Card className="overflow-hidden">
+              <Card className="overflow-hidden mt-2">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -118,9 +129,6 @@ export default async function AdminSubmissionsPage() {
                               <span className="text-text-primary font-medium">
                                 {(user as { nickname: string } | null)?.nickname ?? '알 수 없음'}
                               </span>
-                              {sub.is_seed && (
-                                <Badge variant="muted" className="ml-1.5 text-[10px]">시드</Badge>
-                              )}
                             </td>
                             <td className="px-4 py-3 max-w-[260px]">
                               <p className="text-xs text-text-secondary whitespace-pre-wrap line-clamp-4 leading-relaxed">
@@ -148,7 +156,7 @@ export default async function AdminSubmissionsPage() {
                   </table>
                 </div>
               </Card>
-            </section>
+            </details>
           )
         })}
       </div>

@@ -18,6 +18,9 @@ interface BlindCardProps {
   canVote: boolean
   voting?: boolean
   onVote: (submissionId: string) => void
+  // 결과물 펼침 상태는 부모가 관리한다 — 한 번에 하나만 펼치는 아코디언 동작.
+  expanded: boolean
+  onToggleExpand: (submissionId: string) => void
 }
 
 // text-sm(14px) × leading-[1.7] × 5줄 ≈ 119px
@@ -34,9 +37,10 @@ export default function BlindCard({
   canVote,
   voting = false,
   onVote,
+  expanded,
+  onToggleExpand,
 }: BlindCardProps) {
   const shortId = submissionId.replace(/-/g, '').slice(0, 3)
-  const [expanded, setExpanded] = useState(false)
   const [fullHeight, setFullHeight] = useState<number | null>(null)
   const textRef = useRef<HTMLParagraphElement>(null)
   const [promptExpanded, setPromptExpanded] = useState(false)
@@ -160,7 +164,7 @@ export default function BlindCard({
       </div>
       {isClamped && (
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => onToggleExpand(submissionId)}
           className="text-xs text-accent font-medium mt-1 hover:underline"
         >
           {expanded ? '접기' : '전체보기'}

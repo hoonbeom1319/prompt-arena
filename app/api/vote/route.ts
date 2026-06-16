@@ -23,20 +23,22 @@ export async function GET(request: NextRequest) {
 
     const serviceSupabase = await createServiceClient()
 
-    const { data: myVotes } = await serviceSupabase
-      .from('votes')
-      .select('submission_id')
-      .eq('user_id', user.id)
-      .eq('challenge_id', challengeId)
+    // 두 쿼리는 서로 독립적이므로 병렬로 던진다 (순차 시 왕복 2회 → 1회).
+    const [{ data: myVotes }, { data: subs }] = await Promise.all([
+      serviceSupabase
+        .from('votes')
+        .select('submission_id')
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId),
+      serviceSupabase
+        .from('submissions')
+        .select('id, ai_summary, generations!inner(result_text, prompt_text)')
+        .eq('challenge_id', challengeId)
+        .order('id'),
+    ])
 
     const votedSubmissionIds = (myVotes ?? []).map(v => v.submission_id)
     const revealed = votedSubmissionIds.length >= MAX_VOTES
-
-    const { data: subs } = await serviceSupabase
-      .from('submissions')
-      .select('id, ai_summary, generations!inner(result_text, prompt_text)')
-      .eq('challenge_id', challengeId)
-      .order('id')
 
     const mapped = (subs ?? []).map((s: {
       id: string
@@ -98,24 +100,24 @@ export async function POST(request: NextRequest) {
 
     const serviceSupabase = await createServiceClient()
 
-    // Check vote count
-    const { count: voteCount } = await serviceSupabase
-      .from('votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('challenge_id', challengeId)
+    // 보유 표 수 / 중복 투표 검사는 서로 독립적이므로 병렬로 던진다.
+    const [{ count: voteCount }, { data: existingVote }] = await Promise.all([
+      serviceSupabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId),
+      serviceSupabase
+        .from('votes')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('submission_id', submissionId)
+        .single(),
+    ])
 
     if ((voteCount ?? 0) >= MAX_VOTES) {
       return NextResponse.json({ error: '이미 3표를 모두 사용했어요.' }, { status: 429 })
     }
-
-    // Check duplicate vote
-    const { data: existingVote } = await serviceSupabase
-      .from('votes')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('submission_id', submissionId)
-      .single()
 
     if (existingVote) {
       return NextResponse.json({ error: '이미 이 제출물에 투표했어요.' }, { status: 409 })

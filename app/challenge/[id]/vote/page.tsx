@@ -38,6 +38,8 @@ export default function VotePage() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [myVotes, setMyVotes] = useState<VoteState[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // 모바일 카드 리스트에서 한 번에 하나의 결과물만 펼친다 (radix accordion 동작).
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [voting, setVoting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pageLoading, setPageLoading] = useState(true)
@@ -199,6 +201,8 @@ export default function VotePage() {
                   canVote={votesUsed < MAX_VOTES}
                   voting={voting}
                   onVote={handleVote}
+                  expanded={expandedId === sub.id}
+                  onToggleExpand={(sid) => setExpandedId(prev => (prev === sid ? null : sid))}
                 />
               ))}
             </div>
