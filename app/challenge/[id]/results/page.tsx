@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
 import Podium from './Podium'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
+import GeminiOutput from '@/components/GeminiOutput'
 import CopyLinkButton from './CopyLinkButton'
 import ResultList from './ResultList'
 import { rankSubmissions } from '@/lib/challenge/ranking'
@@ -208,9 +209,10 @@ export default async function ResultsPage({ params }: PageProps) {
               </div>
             )}
             <GeminiOutputLabel className="mb-1.5" />
-            <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
-              {winner.result_text}
-            </p>
+            <GeminiOutput
+              text={winner.result_text}
+              className="bg-bg-subtle border border-border rounded-md p-3"
+            />
 
             {/* 결과 페이지 공유 — 우승작 카드 하단에 구분선과 함께 둔다. */}
             <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">

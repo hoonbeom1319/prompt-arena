@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import GenPips from './GenPips'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
+import GeminiOutput from '@/components/GeminiOutput'
 import { MAX_GENERATIONS } from '@/lib/constants'
 import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'
@@ -90,9 +91,10 @@ export default function GenerateClient({
               </div>
             )}
             <GeminiOutputLabel className="mb-2" />
-            <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap bg-bg-subtle border border-border rounded-md p-3">
-              {gen.activeGen.result_text}
-            </p>
+            <GeminiOutput
+              text={gen.activeGen.result_text}
+              className="bg-bg-subtle border border-border rounded-md p-3"
+            />
           </Card>
 
           {!gen.submittedGenId && (

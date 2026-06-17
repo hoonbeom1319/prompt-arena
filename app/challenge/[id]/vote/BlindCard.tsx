@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import AiSummary from './AiSummary'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
+import GeminiOutput from '@/components/GeminiOutput'
 import { Button } from '@/ds/button'
 import { Card } from '@/ds/card'
 import { IconLock } from '@/ds/icons'
@@ -44,7 +45,7 @@ export default function BlindCard({
 }: BlindCardProps) {
   const shortId = submissionId.replace(/-/g, '').slice(0, 3)
   const [fullHeight, setFullHeight] = useState<number | null>(null)
-  const textRef = useRef<HTMLParagraphElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
   const [promptExpanded, setPromptExpanded] = useState(false)
   const [promptFullHeight, setPromptFullHeight] = useState<number | null>(null)
   const promptRef = useRef<HTMLParagraphElement>(null)
@@ -152,9 +153,7 @@ export default function BlindCard({
         className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
         style={{ maxHeight: expanded ? (fullHeight ? `${fullHeight}px` : 'none') : `${CLAMP_HEIGHT}px` }}
       >
-        <p ref={textRef} className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap">
-          {resultText}
-        </p>
+        <GeminiOutput ref={textRef} text={resultText} />
       </div>
       {isClamped && (
         <button

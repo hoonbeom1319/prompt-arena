@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import RankBadge from '@/components/RankBadge'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
+import GeminiOutput from '@/components/GeminiOutput'
 import { IconChevronDown } from '@/ds/icons'
 import { cn } from '@/lib/utils'
 
@@ -83,9 +84,10 @@ export default function ResultList({ subs }: { subs: RankedSub[] }) {
                   </div>
                   <div>
                     <GeminiOutputLabel className="mb-1.5" />
-                    <p className="text-sm text-text-primary leading-[1.7] whitespace-pre-wrap p-3 bg-bg-subtle border border-border rounded-md">
-                      {sub.result_text}
-                    </p>
+                    <GeminiOutput
+                      text={sub.result_text}
+                      className="p-3 bg-bg-subtle border border-border rounded-md"
+                    />
                   </div>
                 </div>
               </div>
