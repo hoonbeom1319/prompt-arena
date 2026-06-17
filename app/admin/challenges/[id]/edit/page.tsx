@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { isoToKstDate } from '@/lib/time'
 import EditChallengeForm from './EditChallengeForm'
 
 interface PageProps {
@@ -6,11 +7,6 @@ interface PageProps {
 }
 
 export const dynamic = 'force-dynamic'
-
-// ISO(UTC) → KST 달력 날짜 YYYY-MM-DD. 저장이 KST 자정 기준(deriveTwoDayISO)이라
-// 표시도 KST로 못박아야 제출일이 그대로 왕복된다. sv-SE 로케일은 'YYYY-MM-DD HH:mm:ss' 포맷.
-const isoToKstDate = (iso: string) =>
-  new Date(iso).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 10)
 
 // 기존 챌린지 값은 서버에서 읽어 폼 초기값으로 내린다. 수정은 폼이 PATCH /api/admin/challenges/[id]로 처리
 // (admin 인증은 app/admin/layout.tsx가 보장 — ARCHITECTURE §2).

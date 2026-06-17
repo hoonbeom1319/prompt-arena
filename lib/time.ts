@@ -26,3 +26,9 @@ export const nextCalendarDay = (date: string): string => {
 // KST 달력 날짜('YYYY-MM-DD') + 시각('HH:MM:SS')을 UTC ISO 문자열로 못박는다.
 export const kstISO = (date: string, time: string): string =>
   new Date(`${date}T${time}${KST_OFFSET}`).toISOString()
+
+// ISO(UTC) → KST 달력 날짜 'YYYY-MM-DD'. 저장이 KST 자정 기준(deriveTwoDayISO)이라
+// 표시도 KST로 못박아야 제출일이 그대로 왕복된다. timeZone 없이 toLocaleDateString을 쓰면
+// 서버 런타임(UTC)에서 하루 밀려 표기된다. sv-SE 로케일은 'YYYY-MM-DD HH:mm:ss' 포맷.
+export const isoToKstDate = (iso: string): string =>
+  new Date(iso).toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 10)

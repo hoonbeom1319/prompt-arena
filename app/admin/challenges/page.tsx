@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getChallengeState, getStateLabel } from '@/lib/challenge/challenge-state'
+import { isoToKstDate } from '@/lib/time'
 import Link from 'next/link'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
@@ -65,8 +66,7 @@ export default async function AdminChallengesPage() {
                     </div>
                     <div className="text-[15px] font-semibold text-text-primary mb-1">{c.title}</div>
                     <div className="text-xs text-text-muted">
-                      제출: {new Date(c.submission_start_at).toLocaleDateString('ko-KR')} ~{' '}
-                      {new Date(c.submission_end_at).toLocaleDateString('ko-KR')}
+                      제출: {isoToKstDate(c.submission_start_at)} ~ {isoToKstDate(c.submission_end_at)}
                     </div>
                   </div>
 
