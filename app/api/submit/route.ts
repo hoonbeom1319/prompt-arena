@@ -3,7 +3,7 @@ import { after } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getChallengeState } from '@/lib/challenge-state'
 import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS, COIN_REASONS } from '@/lib/coins'
-import { scheduleSubmissionSummary } from '@/lib/summary'
+import { scheduleSubmissionSummary } from '@/lib/ai/summary'
 
 export async function POST(request: NextRequest) {
   try {

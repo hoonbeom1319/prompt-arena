@@ -74,7 +74,7 @@ vi.mock('@/lib/supabase/server', () => {
   }
 })
 
-vi.mock('@/lib/gemini', () => ({
+vi.mock('@/lib/ai/gemini', () => ({
   generateWithPrompt: vi.fn(async () => {
     if (mockGeminiShouldFail) throw new Error('Gemini API error')
     return mockGeminiResult

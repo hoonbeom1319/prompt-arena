@@ -119,7 +119,7 @@ vi.mock('@/lib/coins', () => ({
   COIN_REASONS: { SUBMIT_PROMPT: '프롬프트 제출', CAST_VOTE: '투표 참여', QUIZ_CORRECT: '퀴즈 정답', STREAK_RECOVERY: '연승 회복', RANK_1: '1등 보상', RANK_2: '2등 보상', RANK_3: '3등 보상' },
 }))
 
-vi.mock('@/lib/summary', () => ({
+vi.mock('@/lib/ai/summary', () => ({
   scheduleSubmissionSummary: (...args: unknown[]) => mockScheduleSubmissionSummary(...args),
 }))
 

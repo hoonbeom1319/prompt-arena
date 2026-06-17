@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { generateWithPrompt } from '@/lib/gemini'
+import { generateWithPrompt } from '@/lib/ai/gemini'
 import { getChallengeState } from '@/lib/challenge-state'
 import { MAX_GENERATIONS } from '@/lib/constants'
-import { scheduleSubmissionSummary } from '@/lib/summary'
+import { scheduleSubmissionSummary } from '@/lib/ai/summary'
 
 const assertAdmin = async () => {
   const supabase = await createClient()

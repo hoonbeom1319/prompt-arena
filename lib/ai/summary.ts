@@ -1,6 +1,6 @@
 import { after } from 'next/server'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { generateNeutralSummary } from '@/lib/gemini'
+import { generateNeutralSummary } from '@/lib/ai/gemini'
 
 // 제출 확정 시 AI 중립 요약을 생성·저장한다 (PRD v1.1 4.6.4).
 // 응답이 끝난 뒤 실행되므로 제출 흐름을 막지 않고,
