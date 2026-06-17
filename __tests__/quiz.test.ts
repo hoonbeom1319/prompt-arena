@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { nextStreakValue } from '../lib/quiz'
-import { COIN_AMOUNTS } from '../lib/coins'
+import { COIN_AMOUNTS } from '../lib/coin'
 
 describe('PRD §4.7.2/4.7.5 — 연승 판정 (정답 시)', () => {
   it('직전 출제일에 정답이면 연속 +1', () => {

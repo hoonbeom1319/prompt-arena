@@ -7,7 +7,7 @@
 //  - 정답·해설은 응답 전 클라이언트에 노출 금지 → 이 모듈은 service-role 클라이언트로만 호출한다.
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { awardCoins, COIN_AMOUNTS, COIN_REASONS, recoveryCost } from './coins'
+import { awardCoins, COIN_AMOUNTS, COIN_REASONS, recoveryCost } from '@/lib/coin'
 import { kstToday } from './time'
 
 // 정답을 맞혔을 때의 새 연승 값 (순수 함수 — 테스트 대상).

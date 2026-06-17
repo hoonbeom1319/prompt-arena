@@ -112,7 +112,7 @@ vi.mock('@/lib/supabase/server', () => {
   }
 })
 
-vi.mock('@/lib/coins', () => ({
+vi.mock('@/lib/coin', () => ({
   awardCoins: (...args: unknown[]) => mockAwardCoins(...args),
   checkAndAwardBadge: (...args: unknown[]) => mockCheckAndAwardBadge(...args),
   COIN_AMOUNTS: { SUBMIT_PROMPT: 5, CAST_VOTE: 1, RANK_1: 100, RANK_2: 50, RANK_3: 25 },

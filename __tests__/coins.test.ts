@@ -3,7 +3,7 @@
  * PRD v1.4 §4.7.6 — 코인 첫 사용처(연승 회복) 비용 계산
  */
 import { describe, it, expect } from 'vitest'
-import { COIN_AMOUNTS, STREAK_RECOVERY_COST_FACTOR, recoveryCost } from '../lib/coins'
+import { COIN_AMOUNTS, STREAK_RECOVERY_COST_FACTOR, recoveryCost } from '../lib/coin'
 
 describe('PRD §4.4 F-8 — 코인 보상 금액', () => {
   it('프롬프트 제출 → +5 코인', () => {

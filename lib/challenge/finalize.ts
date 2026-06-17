@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { rankSubmissions } from '@/lib/challenge/ranking'
-import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS, RANK_REASONS } from '@/lib/coins'
+import { awardCoins, checkAndAwardBadge, COIN_AMOUNTS, RANK_REASONS } from '@/lib/coin'
 
 export interface FinalizeResult {
   skipped: boolean
