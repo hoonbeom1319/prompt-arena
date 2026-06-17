@@ -6,18 +6,15 @@ import { Button } from '@/ds/button'
 import { Input, Textarea } from '@/ds/input'
 import { Label } from '@/ds/label'
 import { Card } from '@/ds/card'
+import { kstToday } from '@/lib/time'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-const pad = (n: number) => String(n).padStart(2, '0')
+// 날짜 문자열(YYYY-MM-DD)에 대한 달력 산술 — 로컬 자정 앵커라 타임존 드리프트 없음.
 const formatDay = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`
 const addDays = (date: string, n: number) => {
   const d = new Date(`${date}T00:00:00`)
   d.setDate(d.getDate() + n)
   return d
-}
-const todayLocal = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 interface NewChallengeFormProps {
@@ -34,7 +31,7 @@ export default function NewChallengeForm({ initialConflict }: NewChallengeFormPr
     model_name: 'gemini-2.5-flash',
     temperature: '0.7',
     wrapper_text: '',
-    submission_date: todayLocal(),
+    submission_date: kstToday(),
   }))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

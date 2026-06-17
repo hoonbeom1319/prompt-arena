@@ -39,7 +39,7 @@ export default async function ProfilePage() {
     .limit(5)
 
   const joinMonth = new Date(profile.created_at).toLocaleDateString('ko-KR', {
-    year: 'numeric', month: '2-digit',
+    year: 'numeric', month: '2-digit', timeZone: 'Asia/Seoul',
   }).replace('. ', '.').replace('.', '년 ').replace('.', '월').trim()
 
   const anonId = user.id.replace(/-/g, '').slice(0, 6)

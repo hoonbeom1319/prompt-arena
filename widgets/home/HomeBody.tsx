@@ -10,6 +10,7 @@ import { Badge } from '@/ds/badge'
 import { Button } from '@/ds/button'
 import { type ChallengeState } from '@/lib/challenge/challenge-state'
 import { MAX_GENERATIONS, MAX_VOTES } from '@/lib/constants'
+import { isoToKstDate } from '@/lib/time'
 import type { TopRankEntry, NextChallengePreview } from '@/lib/challenge/home-data'
 import { IconUsers, IconLock, IconMoon, IconCheck, IconTrophy } from '@/ds/icons'
 
@@ -110,8 +111,9 @@ function UserStatusCard({
 }
 
 function NextTopicCard({ next }: { next: NextChallengePreview }) {
-  const startDate = new Date(next.startAt)
-  const label = `${startDate.getMonth() + 1}/${startDate.getDate()} 시작`
+  // KST 달력 기준 월/일 — 뷰어 타임존과 무관하게 못박는다.
+  const [, m, d] = isoToKstDate(next.startAt).split('-')
+  const label = `${Number(m)}/${Number(d)} 시작`
 
   return (
     <Card className="p-4 bg-bg-subtle">

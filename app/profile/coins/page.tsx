@@ -10,10 +10,10 @@ export const metadata = {
 }
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' })
 
 const formatTime = (d: string) =>
-  new Date(d).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+  new Date(d).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })
 
 export default async function CoinsPage() {
   const supabase = await createClient()

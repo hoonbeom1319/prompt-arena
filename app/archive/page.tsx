@@ -112,7 +112,7 @@ export default async function ArchivePage() {
                         <div className="flex items-center gap-4">
                           <span className="text-xs text-text-muted">{challenge.participantCount}명 참여</span>
                           <span className="text-xs text-text-muted">
-                            {new Date(challenge.created_at).toLocaleDateString('ko-KR')}
+                            {new Date(challenge.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                           </span>
                         </div>
                       </div>

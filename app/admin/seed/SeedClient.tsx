@@ -309,7 +309,7 @@ export default function SeedClient({ initialChallenges }: SeedClientProps) {
                           {seed.result_text}
                         </td>
                         <td className="py-2.5 text-right text-xs text-text-muted whitespace-nowrap tabular-nums">
-                          {new Date(seed.submitted_at).toLocaleDateString('ko-KR')}
+                          {new Date(seed.submitted_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                         </td>
                       </tr>
                     ))}

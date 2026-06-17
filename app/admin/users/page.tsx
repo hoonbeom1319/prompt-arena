@@ -67,7 +67,7 @@ export default async function AdminUsersPage() {
                   }
                 </span>
                 <span className="text-xs text-text-muted">
-                  {new Date(user.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(user.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                 </span>
               </div>
             ))}
