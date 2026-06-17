@@ -1,9 +1,26 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-16 (아키텍처 리팩토링 P5 완료. P6 대기)
+description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-17 (아키텍처 리팩토링 P0~P6 전부 완료)
 metadata:
   type: project
 ---
+
+## 현재 상태 (2026-06-17 13차 갱신) — 아키텍처 리팩토링 P6 완료 (P0~P6 종료)
+
+P6(폴더 수렴) 6개 항목 각각 독립 커밋·단계별 그린(tsc·ESLint·build·vitest 79/79). **이로써 ARCHITECTURE 로드맵 P0~P6 전부 종료.** [[project-philosophy]]
+
+- **P6-1 lib/ai/** (`f7dbfc8`): gemini·summary → lib/ai/. importer 4 + 테스트 목 2.
+- **P6-2 lib/challenge/** (`5cf38bc`): challenge-state·challenge-schedule·finalize·home-data·ranking → lib/challenge/. **importer 20파일** + 테스트 경로 갱신. challenge-schedule 깨진 상대 import(./time)→@/lib/time.
+- **P6-3 lib/coin/ 분해** (`db8f1ab`): coins.ts → amounts(상수·reason)·recovery(회복 비용)·ledger(awardCoins·뱃지) + **index 배럴**. 소비자 `@/lib/coins`→`@/lib/coin`(4 + 테스트 5). reason 값 불변.
+- **P6-4 lib/quiz/ 분해** (`ef2eadb`): quiz.ts(331줄) → data(조회·타입)·streak(계산)·scoring(채점)·recovery(회복) + **index 배럴**. **배럴 덕에 `@/lib/quiz` 경로 그대로 → 외부 import 무변경**(폴더+index가 같은 경로로 resolve). 회복 비용은 @/lib/coin 참조.
+- **P6-5 컴포넌트 colocation** (`f38666d`): 단일 사용처 흡수 — AiSummary·BlindCard→vote/, Podium→results/, GenPips→generate/, TopicCard·CountdownCard·CountdownTimer→widgets/home/. **잔류(2+ 라우트 공유)**: AppBar·TabBar·RankBadge·VoteTokens·StatsRow·GeminiOutputLabel·admin/AdminShell.
+- **P6-6 hooks/ 검증 → 미생성 결정**: 커스텀 훅 3개(useQuizGame·useGeneration·useVoting) 전부 단일 라우트 colocate라 **공유 훅 0개** → 빈 `hooks/` 안 만듦. ARCHITECTURE §1·§9에 근거 명문화. (코드 변경 없음, 문서만.)
+- **기법 메모**: 대량 import 경로 갱신은 .NET `File.ReadAllText`+`.Replace()`+UTF8(no BOM) `WriteAllText`로 일괄(한글·LF 보존). git mv로 이력 보존. tsc가 누락 import를 전수 검출하므로 안전.
+- **현재 lib 구조**: `lib/{utils,shuffle,constants,time,rank-colors}.ts` + `supabase/` + `ai/`·`challenge/`·`coin/`·`quiz/`(각 도메인). `lib`에 `function` 키워드 0개·도메인 분해 완료.
+
+### A-9 코인 경제 모니터링 — **홀드 (사용자 지시 2026-06-17)**
+
+P5 reason 상수화로 선행 작업은 끝났으나(reason별 집계 가능), **집계 화면 착수는 보류**. 재개 시: 적립vs사용·회복 사용률·"퀴즈 누적 < 챌린지 우승" 부등호 감시. [[project-state]]
 
 ## 현재 상태 (2026-06-16 12차 갱신) — 아키텍처 리팩토링 P5 완료
 

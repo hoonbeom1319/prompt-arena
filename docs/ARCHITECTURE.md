@@ -29,7 +29,7 @@
 | `app/` | 라우트·페이지·API 라우트 (Next App Router) | URL에 1:1 대응하는 것 + 그 라우트 **전용** UI·훅 (colocate) |
 | `ds/` | 디자인 프리미티브 (Button, Card, Input, **Icon**, **Modal** …) | 색·크기·variant를 갖는 UI 원자. 도메인 무지(domain-agnostic) |
 | `components/` | **2개 이상 라우트**에서 공유되는 UI | 진짜 공유만. 단일 라우트 전용이면 `app/<route>/`로 colocate |
-| `hooks/` *(신설)* | **2개 이상**에서 쓰는 클라이언트 훅 | 단일 라우트 전용 훅은 `app/<route>/use*.ts`로 colocate |
+| `hooks/` *(조건부 신설 — P6 시점 0개)* | **2개 이상**에서 쓰는 클라이언트 훅 | 단일 라우트 전용 훅은 `app/<route>/use*.ts`로 colocate. 공유 훅이 처음 생길 때 신설(§9 주) |
 | `lib/` | 순수 유틸·외부 클라이언트·도메인 로직 | 아래 §1.1 도메인 분리 규칙 |
 
 ### 1.1 `lib/` 내부 도메인 분리
@@ -170,9 +170,11 @@ lib/
 | **P3** | 훅 추출: `QuizClient`(내가 만든 빚) → `generate` → `vote`. useState 뭉치 → `use<Domain>` | 중 |
 | **P4** | `ds/icons.tsx` + `ds/modal.tsx` 신설, 인라인 SVG·ad-hoc 모달 흡수 | 낮음 |
 | **P5** | 토큰 단일화 + import/파일명 교정 + **lib `export function`→화살표 스윕** + 코인 reason 상수 + `lib/time` | 낮음 |
-| **P6** | 폴더 수렴: `hooks/`, `lib/<domain>/`, components colocation, `coins.ts`·`quiz.ts` 분해 | 중 (대량 이동·import 갱신) |
+| **P6 ✅** | 폴더 수렴 **완료**: `lib/<domain>/`(ai·challenge·coin·quiz), `coins.ts`·`quiz.ts` 분해(배럴), components colocation. `hooks/`는 **미생성**(아래 주) | 중 (대량 이동·import 갱신) |
 
-> **A-9(코인 경제 모니터링)는 P5의 reason 상수화 이후** 착수하면 reason별 집계가 깔끔하다.
+> **A-9(코인 경제 모니터링)는 P5의 reason 상수화 이후** 착수하면 reason별 집계가 깔끔하다. **(현재 홀드 — 집계 미착수.)**
+>
+> **`hooks/` 미생성 결정 (P6 검증):** 신설 기준은 "2개 이상에서 쓰는 클라이언트 훅"(§4.2). 현재 커스텀 훅 3개(`useQuizGame`·`useGeneration`·`useVoting`)는 전부 단일 라우트 전용이라 이미 `app/<route>/use*.ts`로 colocate됨 → 공유 훅이 0개. 빈 `hooks/`를 만들지 않는다. 2곳+ 공유 훅이 처음 생기는 시점에 신설.
 
 ---
 
