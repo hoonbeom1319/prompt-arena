@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import AiSummary from '@/components/AiSummary'
+import AiSummary from './AiSummary'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import { Button } from '@/ds/button'
 import { Card } from '@/ds/card'

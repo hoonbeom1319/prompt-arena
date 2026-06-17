@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import AppBar from '@/components/AppBar'
-import Podium from '@/components/Podium'
+import Podium from './Podium'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import CopyLinkButton from './CopyLinkButton'
 import ResultList from './ResultList'

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import AiSummary from '@/components/AiSummary'
-import BlindCard from '@/components/BlindCard'
+import AiSummary from './AiSummary'
+import BlindCard from './BlindCard'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import VoteTokens from '@/components/VoteTokens'
 import { MAX_VOTES } from '@/lib/constants'

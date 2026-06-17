@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import GenPips from '@/components/GenPips'
+import GenPips from './GenPips'
 import GeminiOutputLabel from '@/components/GeminiOutputLabel'
 import { MAX_GENERATIONS } from '@/lib/constants'
 import { Button } from '@/ds/button'
