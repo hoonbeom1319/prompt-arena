@@ -3,7 +3,7 @@
  * 챌린지 상태는 저장값이 아니라 4개 시각으로 계산한다.
  */
 import { describe, it, expect } from 'vitest'
-import { getChallengeState, getNextTransition } from '../lib/challenge-state'
+import { getChallengeState, getNextTransition } from '../lib/challenge/challenge-state'
 
 function makeChallenge(overrides: {
   submission_start_at?: string

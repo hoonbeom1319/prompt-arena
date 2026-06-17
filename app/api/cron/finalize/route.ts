@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getChallengeState } from '@/lib/challenge-state'
-import { finalizeChallenge } from '@/lib/finalize'
+import { getChallengeState } from '@/lib/challenge/challenge-state'
+import { finalizeChallenge } from '@/lib/challenge/finalize'
 
 export const runtime = 'nodejs'
 

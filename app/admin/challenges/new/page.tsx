@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import { getChallengeState } from '@/lib/challenge-state'
+import { getChallengeState } from '@/lib/challenge/challenge-state'
 import NewChallengeForm from './NewChallengeForm'
 
 export const dynamic = 'force-dynamic'

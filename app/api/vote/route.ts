@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { getChallengeState } from '@/lib/challenge-state'
+import { getChallengeState } from '@/lib/challenge/challenge-state'
 import { awardCoins, COIN_AMOUNTS, COIN_REASONS } from '@/lib/coins'
 import { seededShuffle } from '@/lib/shuffle'
 

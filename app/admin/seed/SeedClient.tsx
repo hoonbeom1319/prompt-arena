@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getChallengeState, type Challenge as ChallengeRecord } from '@/lib/challenge-state'
+import { getChallengeState, type Challenge as ChallengeRecord } from '@/lib/challenge/challenge-state'
 import { MIN_PARTICIPANTS } from '@/lib/constants'
 import { Button } from '@/ds/button'
 import { Textarea } from '@/ds/input'

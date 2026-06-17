@@ -4,7 +4,7 @@
 //
 // ⚠️ 제출일은 *KST 달력 기준*이다. KST 경계 산술은 lib/time.ts에 단일화돼 있다.
 
-import { nextCalendarDay, kstISO } from './time'
+import { nextCalendarDay, kstISO } from '@/lib/time'
 
 export interface ScheduleTimes {
   submission_start_at: string

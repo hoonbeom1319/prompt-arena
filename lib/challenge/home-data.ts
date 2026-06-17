@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { getChallengeState, getNextTransition, type Challenge, type ChallengeState } from '@/lib/challenge-state'
-import { rankSubmissions } from '@/lib/ranking'
+import { getChallengeState, getNextTransition, type Challenge, type ChallengeState } from '@/lib/challenge/challenge-state'
+import { rankSubmissions } from '@/lib/challenge/ranking'
 
 export interface TopRankEntry {
   id: string

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { deriveTwoDayISO, validateSchedule } from '@/lib/challenge-schedule'
+import { deriveTwoDayISO, validateSchedule } from '@/lib/challenge/challenge-schedule'
 
 export async function POST(request: NextRequest) {
   try {

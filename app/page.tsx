@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { getChallengeState } from '@/lib/challenge-state'
-import { fetchHomeData } from '@/lib/home-data'
+import { getChallengeState } from '@/lib/challenge/challenge-state'
+import { fetchHomeData } from '@/lib/challenge/home-data'
 import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
 import HomeBody from '@/widgets/home/HomeBody'

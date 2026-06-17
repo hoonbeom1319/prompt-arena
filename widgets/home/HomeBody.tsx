@@ -8,9 +8,9 @@ import RankBadge from '@/components/RankBadge'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'
 import { Button } from '@/ds/button'
-import { type ChallengeState } from '@/lib/challenge-state'
+import { type ChallengeState } from '@/lib/challenge/challenge-state'
 import { MAX_GENERATIONS, MAX_VOTES } from '@/lib/constants'
-import type { TopRankEntry, NextChallengePreview } from '@/lib/home-data'
+import type { TopRankEntry, NextChallengePreview } from '@/lib/challenge/home-data'
 import { IconUsers, IconLock, IconMoon, IconCheck, IconTrophy } from '@/ds/icons'
 
 interface ChallengeInfo {

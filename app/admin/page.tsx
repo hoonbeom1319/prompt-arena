@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
+import { getChallengeState, getStateLabel } from '@/lib/challenge/challenge-state'
 import Link from 'next/link'
 import { Card } from '@/ds/card'
 import { Badge } from '@/ds/badge'

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getChallengeState, getStateLabel } from '@/lib/challenge-state'
+import { getChallengeState, getStateLabel } from '@/lib/challenge/challenge-state'
 import AppBar from '@/components/AppBar'
 import TabBar from '@/components/TabBar'
 import Link from 'next/link'
