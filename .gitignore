@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# DB 백업 — 콘텐츠(PII 없음)만 커밋, 전체 덤프(타임스탬프 폴더, PII 포함)는 제외
+/db-backup/*
+!/db-backup/content-seed/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

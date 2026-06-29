@@ -1,0 +1,58 @@
+[
+  {
+    "id": "ad34b4c1-26d2-48a6-8269-e9827b18d1e2",
+    "name": "첫 제출",
+    "description": "처음으로 프롬프트를 제출했어요",
+    "icon": "🚀",
+    "condition_type": "first_submission"
+  },
+  {
+    "id": "577e7073-8641-45c4-8edd-4b6e1978c4ec",
+    "name": "첫 우승",
+    "description": "처음으로 챌린지에서 우승했어요",
+    "icon": "🏆",
+    "condition_type": "first_win"
+  },
+  {
+    "id": "94c4ed95-a442-4b37-89c8-b7a66f8dc127",
+    "name": "3연속 우승",
+    "description": "챌린지에서 3번 우승했어요",
+    "icon": "👑",
+    "condition_type": "wins_3"
+  },
+  {
+    "id": "f10bb8ed-ca04-4f13-9a31-20b2ca744997",
+    "name": "투표왕",
+    "description": "투표를 30번 했어요",
+    "icon": "🗳️",
+    "condition_type": "votes_30"
+  },
+  {
+    "id": "f83bbe79-4652-4702-8802-7d62dbf2f455",
+    "name": "프롬프트 장인",
+    "description": "챌린지를 10번 참여했어요",
+    "icon": "⚒️",
+    "condition_type": "participation_10"
+  },
+  {
+    "id": "b153832f-4b3b-4c81-9b4b-8b9d04615fe1",
+    "name": "10연승",
+    "description": "퀴즈를 10일 연속 맞혔어요",
+    "icon": "🔥",
+    "condition_type": "streak_10"
+  },
+  {
+    "id": "27df20ec-07f8-42af-b60c-50084c408092",
+    "name": "20연승",
+    "description": "퀴즈를 20일 연속 맞혔어요",
+    "icon": "⚡",
+    "condition_type": "streak_20"
+  },
+  {
+    "id": "5eb5d3d9-21c6-47f3-a1c1-7b307d494046",
+    "name": "30연승",
+    "description": "퀴즈를 30일 연속 맞혔어요",
+    "icon": "💎",
+    "condition_type": "streak_30"
+  }
+]

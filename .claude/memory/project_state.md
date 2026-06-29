@@ -1,9 +1,19 @@
 ---
 name: project-state
-description: 프로젝트 현재 상태 스냅샷 — 마지막 업데이트 2026-06-17 (아키텍처 리팩토링 P0~P6 전부 완료)
+description: 프로젝트 현재 상태 스냅샷 — 2026-06-29 서비스 종료. 재시작 키트(schema.sql + restore-content.sql) 보존
 metadata:
   type: project
 ---
+
+## 현재 상태 (2026-06-29 14차 갱신) — **서비스 종료**
+
+Prompt Arena 서비스를 접음. DB 백업 후 **유저 데이터(PII)는 폐기, 콘텐츠만 보존**.
+
+- **재시작 키트 (PII 0, 커밋됨):** `supabase/schema.sql`(구조+RLS+기본 카테고리/뱃지 시드) + `supabase/restore-content.sql`(챌린지 5 + 30일 퀴즈 30 재시드). 새 DB에 둘을 순서대로 1회 실행하면 콘텐츠만 살아있는 완전 초기상태 복원. **절차 전체는 `docs/RESTART.md`.**
+- **백업 스크립트:** `scripts/backup-db.mjs`(전체 덤프, PII 포함 — 주의), `scripts/backup-content.mjs`(PII 없는 콘텐츠 + restore SQL 재생성). service_role 키로 RLS 우회, `.env` 직접 파싱.
+- **보존 콘텐츠 JSON:** `db-backup/content-seed/`(categories·challenges·badges·quiz_items) — 커밋됨(PII 없음). `.gitignore`는 `/db-backup/*` + `!content-seed/`로, 향후 타임스탬프 전체 덤프는 계속 제외.
+- **폐기:** 유저 PII 전체 덤프 폴더 삭제함(이메일·생성 프롬프트·투표·코인·연승). 원본은 Supabase DB에 아직 잔존 → 준비되면 프로젝트 Pause/Delete + `.env` 키(`SUPABASE_SECRET_KEY`·`GEMINI_API_KEY`) 폐기.
+- **재시작 주의:** schema.sql은 새 DB 1회만(재실행 시 policy 충돌). migrate-v1.3/v1.4는 기존 DB 증분용이라 새 DB엔 불필요(schema.sql에 포함). 챌린지 기간은 과거(2026-06) 날짜 그대로 → admin에서 재설정. 새 DB엔 admin 없음 → 첫 로그인 후 `update users set is_admin=true`. [[project-philosophy]]
 
 ## 현재 상태 (2026-06-17 13차 갱신) — 아키텍처 리팩토링 P6 완료 (P0~P6 종료)
 
